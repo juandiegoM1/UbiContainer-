@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ubi_container_new/welcome_screen.dart'; 
+import 'package:ubi_container_new/splash_animation_screen.dart'; 
 import 'package:ubi_container_new/auth_service.dart'; 
 
 import 'package:ubi_container_new/services/report_queue_service.dart';
-
-import 'package:ubi_container_new/map_screen.dart' as mapScreen;
 
 
 void main() async {
@@ -36,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue, 
       ),
-      home: const WelcomeScreen(), 
+      home: const SplashAnimationScreen(), 
     );
   }
 }

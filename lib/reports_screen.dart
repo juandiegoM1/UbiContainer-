@@ -105,7 +105,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Reportes', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xffB81736),
+        backgroundColor: const Color(0xff2D6A4F),
         iconTheme: const IconThemeData(color: Colors.white), 
       ),
       body: _reports.isEmpty
@@ -126,7 +126,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
                   ),
-                  color: const Color(0xff281537), 
+                  color: const Color(0xff6B4F2A), 
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -198,10 +198,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
                                 tooltip: 'Reintentar envío',
                               ),
                             if (reporte.estado != ReporteEstado.enviado)
-                              IconButton(
-                                icon: const Icon(Icons.delete_forever, color: Colors.grey),
-                                onPressed: () => _deleteReport(reporte), 
-                                tooltip: 'Eliminar reporte',
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.delete_forever, size: 18),
+                                label: const Text('Eliminar', style: TextStyle(fontSize: 12)),
+                                onPressed: () => _deleteReport(reporte),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  minimumSize: Size.zero,
+                                ),
                               ),
                           ],
                         ),

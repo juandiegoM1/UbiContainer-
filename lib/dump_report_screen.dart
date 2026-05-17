@@ -7,7 +7,7 @@ import 'package:ubi_container_new/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-const String backendUrl = 'https://corrigibly-ungeneralizing-janell.ngrok-free.dev';
+const String backendUrl = Config.backendUrl;
 
 /// Pantalla para crear reportes de vertederos ilegales
 class DumpReportScreen extends StatefulWidget {
@@ -200,28 +200,30 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reportar Vertedero Ilegal', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xffB81736),
+        backgroundColor: const Color(0xff2D6A4F),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Sección de foto
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+      body: Container(
+        color: const Color(0xfff5f5f5),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Card(
+                elevation: 4,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     const Row(
                       children: [
-                        Icon(Icons.camera_alt, color: Color(0xffB81736)),
+                        Icon(Icons.camera_alt, color: Color(0xff2D6A4F)),
                         SizedBox(width: 8),
                         Text(
                           'Foto del Vertedero *',
@@ -279,7 +281,7 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
                             icon: const Icon(Icons.camera_alt, color: Colors.white),
                             label: const Text('Tomar Foto', style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xffB81736),
+                              backgroundColor: const Color(0xff2D6A4F),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             onPressed: _isSubmitting ? null : _takePhoto,
@@ -288,10 +290,10 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton.icon(
-                            icon: const Icon(Icons.photo_library, color: Color(0xffB81736)),
-                            label: const Text('Galería', style: TextStyle(color: Color(0xffB81736))),
+                            icon: const Icon(Icons.photo_library, color: Color(0xff2D6A4F)),
+                            label: const Text('Galería', style: TextStyle(color: Color(0xff2D6A4F))),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Color(0xffB81736)),
+                              side: const BorderSide(color: Color(0xff2D6A4F)),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                             onPressed: _isSubmitting ? null : _pickFromGallery,
@@ -309,8 +311,10 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
             // Sección de ubicación
             Card(
               elevation: 4,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xffe0e0e0), width: 1),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -319,7 +323,7 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.location_on, color: Color(0xffB81736)),
+                        Icon(Icons.location_on, color: Color(0xff2D6A4F)),
                         SizedBox(width: 8),
                         Text(
                           'Ubicación *',
@@ -381,17 +385,20 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
                     
                     const SizedBox(height: 16),
                     
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.map, color: Colors.white),
-                      label: Text(
-                        _selectedLatitude != null ? 'Cambiar Ubicación' : 'Seleccionar en Mapa',
-                        style: const TextStyle(color: Colors.white),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.map, color: Colors.white, size: 20),
+                        label: const Text(
+                          'Seleccionar en Mapa',
+                          style: TextStyle(color: Colors.white, fontSize: 13),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff2D6A4F),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                        onPressed: _isSubmitting ? null : _selectLocation,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xffB81736),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: _isSubmitting ? null : _selectLocation,
                     ),
                   ],
                 ),
@@ -403,8 +410,10 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
             // Sección de descripción
             Card(
               elevation: 4,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xffe0e0e0), width: 1),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -413,7 +422,7 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.description, color: Color(0xffB81736)),
+                        Icon(Icons.description, color: Color(0xff2D6A4F)),
                         SizedBox(width: 8),
                         Text(
                           'Descripción (opcional)',
@@ -459,7 +468,7 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
                 style: const TextStyle(fontSize: 18, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xffB81736),
+                backgroundColor: const Color(0xff2D6A4F),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -494,6 +503,7 @@ class _DumpReportScreenState extends State<DumpReportScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

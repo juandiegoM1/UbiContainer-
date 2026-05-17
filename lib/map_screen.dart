@@ -14,6 +14,7 @@ import 'package:ubi_container_new/services/report_queue_service.dart';
 import 'package:ubi_container_new/auth_service.dart';
 import 'package:ubi_container_new/config.dart';
 import 'package:ubi_container_new/dump_report_screen.dart' hide backendUrl;
+import 'package:ubi_container_new/welcome_screen.dart';
 
 const String backendUrl = Config.backendUrl;
 
@@ -679,7 +680,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     _routeInstructions = null;
 
     try {
-      const String mapboxToken = 'TU_TOKEN_DE_MAPBOX_AQUI';
+      const String mapboxToken = mapboxAccessToken;
       
       String origin = '${_currentPosition!.longitude},${_currentPosition!.latitude}';
       String destination = '${container.longitude},${container.latitude}';
@@ -2874,8 +2875,10 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                   onPressed: () async {
                     await AuthService.deleteToken();
                     if (context.mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/welcome', (route) => false);
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                        (route) => false,
+                      );
                     }
                   },
                   icon: const Icon(Icons.logout),

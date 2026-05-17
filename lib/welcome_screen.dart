@@ -3,8 +3,8 @@ import 'package:ubi_container_new/reg_screen.dart';
 import 'package:ubi_container_new/login_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key}); // ✔ Simplificado usando super.key
-
+  const WelcomeScreen({super.key}); 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,8 +14,8 @@ class WelcomeScreen extends StatelessWidget {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xffB81736),
-              Color(0xff281537),
+              Color(0xff2D6A4F),
+              Color(0xff6B4F2A),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -24,8 +24,10 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 200),
-            const Image(
-              image: AssetImage('assets/logo.png'),
+            const Icon(
+              Icons.location_on,
+              size: 120,
+              color: Colors.white,
             ),
             const SizedBox(height: 100),
             const Text(
@@ -95,17 +97,6 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            const Text(
-              'Iniciar Sesión con Redes Sociales',
-              style: TextStyle(
-                fontSize: 17,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Image(
-              image: AssetImage('assets/social.png'),
-            ),
             const SizedBox(height: 30),
           ],
         ),

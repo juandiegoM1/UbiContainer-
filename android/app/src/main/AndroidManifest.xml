@@ -26,10 +26,10 @@
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">  <!-- ✅ AGREGADO: Permite HTTP (no HTTPS) -->
         
-        <!-- ✅ Token de Mapbox para Android (debe ser com.mapbox.token) -->
+        <!-- ✅ Token de Mapbox para Android (definido en android/local.properties) -->
         <meta-data
             android:name="com.mapbox.token"
-            android:value="TU_TOKEN_DE_MAPBOX_AQUI" />
+            android:value="${MAPBOX_ACCESS_TOKEN}" />
         
         <activity
             android:name=".MainActivity"

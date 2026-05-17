@@ -27,9 +27,9 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
 
-    <!-- Token de Mapbox (Necesario para autenticación) -->
+    <!-- Token de Mapbox (definido en ios/Flutter/Mapbox.xcconfig) -->
     <key>MBXAccessToken</key>
-    <string>TU_TOKEN_DE_MAPBOX_AQUI</string>
+    <string>$(MAPBOX_ACCESS_TOKEN)</string>
 
     <!-- 🌟 CONFIGURACIÓN DE SEGURIDAD DE RED (ATS) 🌟 -->
     <key>NSAppTransportSecurity</key>
