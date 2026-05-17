@@ -1,4 +1,4 @@
--- Crear tabla para reportes de vertederos ilegales
+-- Crear tabla para reportes de vertederos ilegales esto es una pruebaaaa
 CREATE TABLE IF NOT EXISTS reportes_vertederos (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,

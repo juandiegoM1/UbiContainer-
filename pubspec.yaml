@@ -11,14 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  mapbox_maps_flutter: ^2.10.0 # Asegúrate de que esta versión sea correcta
-  latlong2: ^0.9.1  # Actualiza a la última versión disponible
-  carousel_slider: ^5.1.1  # Actualiza a la última versión disponible
+  mapbox_maps_flutter: ^2.10.0 
+  latlong2: ^0.9.1  
+  carousel_slider: ^5.1.1  
   flutter_secure_storage: ^9.2.4
-  geolocator: ^14.0.2  # Actualiza a la última versión disponible
-  permission_handler: ^11.0.0 # Manejo completo de permisos (ubicación, etc.)
+  geolocator: ^14.0.2  
+  permission_handler: ^11.0.0 
   flutter_dotenv: ^6.0.0
-  shared_preferences: ^2.5.3  # Actualiza a la última versión disponible
+  shared_preferences: ^2.5.3  
   uuid: ^4.5.1
   http: ^1.5.0  
   image_picker: ^1.0.5  
@@ -32,16 +32,3 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets que tengas en tu proyecto
-  # assets:
-  #   - assets/images/
-  #   - assets/data/
-  #   - assets/icons/
-
-  # Fuentes personalizadas si las tienes
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic

@@ -50,8 +50,8 @@ class _SplashAnimationScreenState extends State<SplashAnimationScreen> with Sing
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xffB81736),
-              Color(0xff281537),
+              Color(0xff2D6A4F),
+              Color(0xff6B4F2A),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,

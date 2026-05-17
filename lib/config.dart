@@ -1,5 +1,3 @@
 class Config {
-  // Cambia esta URL cada vez que reinicies ngrok
-  static const String backendUrl = 'https://corrigibly-ungeneralizing-janell.ngrok-free.dev';
+  static const String backendUrl = 'http://192.168.1.2:8000';
 }
-*cascade082@file:///Users/molina/Documents/ubi_container_new/lib/config.dart

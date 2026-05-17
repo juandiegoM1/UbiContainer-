@@ -2,13 +2,13 @@
 class Assets {
   Assets._();
 
-  static const String androidBuild.gradle = 'android/build.gradle.kts';
+  static const String androidBuildGradle = 'android/build.gradle.kts';
   static const String androidGradle = 'android/gradle.properties';
   static const String androidGradlew = 'android/gradlew';
   static const String androidLocal = 'android/local.properties';
-  static const String androidSettings.gradle = 'android/settings.gradle.kts';
+  static const String androidSettingsGradle = 'android/settings.gradle.kts';
   static const String androidUbiContainerAndroid = 'android/ubi_container_android.iml';
-  static const String appBuild.gradle = 'android/app/build.gradle.kts';
+  static const String appBuildGradle = 'android/app/build.gradle.kts';
   static const String debugAndroidManifest = 'android/app/src/debug/AndroidManifest.xml';
   static const String drawableLaunchBackground = 'android/app/src/main/res/drawable/launch_background.xml';
   static const String drawableV21LaunchBackground = 'android/app/src/main/res/drawable-v21/launch_background.xml';

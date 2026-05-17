@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:ubi_container_new/map_screen.dart';
 import 'package:ubi_container_new/reg_screen.dart'; 
+import 'package:ubi_container_new/config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://corrigibly-ungeneralizing-janell.ngrok-free.dev/login'),
+        Uri.parse('${Config.backendUrl}/login'),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'ngrok-skip-browser-warning': 'true',
@@ -131,8 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xffB81736),
-              Color(0xff281537),
+              Color(0xff2D6A4F),
+              Color(0xff6B4F2A),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -203,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: Center(
                   child: isLoading
-                      ? const CircularProgressIndicator(color: Color(0xffB81736))
+                      ? const CircularProgressIndicator(color: Color(0xff2D6A4F))
                       : const Text(
                           'INICIAR SESIÓN',
                           style: TextStyle(
@@ -257,14 +258,6 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 30),
 
             const Spacer(),
-            const Text(
-              'Iniciar sesión con redes sociales',
-              style: TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 12),
-            const Image(
-              image: AssetImage('assets/social.png'),
-            ),
             const SizedBox(height: 30),
           ],
         ),

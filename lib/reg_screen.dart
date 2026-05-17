@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:ubi_container_new/map_screen.dart';
 import 'package:ubi_container_new/login_screen.dart'; // Importación necesaria para navegar a LoginScreen
+import 'package:ubi_container_new/config.dart';
 
 class RegScreen extends StatefulWidget {
   const RegScreen({super.key});
@@ -33,7 +34,7 @@ class _RegScreenState extends State<RegScreen> {
       return;
     }
 
-    final url = Uri.parse('https://corrigibly-ungeneralizing-janell.ngrok-free.dev/register');
+    final url = Uri.parse('${Config.backendUrl}/register');
     try {
       final response = await http.post(
         url,
@@ -80,8 +81,8 @@ class _RegScreenState extends State<RegScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xffB81736),
-              Color(0xff281537),
+              Color(0xff2D6A4F),
+              Color(0xff6B4F2A),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -231,8 +232,8 @@ class _RegScreenState extends State<RegScreen> {
                         borderRadius: BorderRadius.circular(30),
                         gradient: const LinearGradient(
                           colors: [
-                            Color(0xffB81736),
-                            Color(0xff281537),
+                            Color(0xff2D6A4F),
+                            Color(0xff6B4F2A),
                           ],
                         ),
                       ),

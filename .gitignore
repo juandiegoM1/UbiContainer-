@@ -3,6 +3,17 @@
 *.log
 *.pyc
 *.swp
+.env
+.env.*
+!.env.example
+
+# Secretos locales (tokens de Mapbox por plataforma)
+lib/secrets.dart
+ios/Flutter/Mapbox.xcconfig
+
+# Archivo de instrucciones local (no versionar)
+backend_app/INSTRUCCIONES_CONTENEDORES.md
+
 .DS_Store
 .atom/
 .build/
@@ -22,6 +33,7 @@ migrate_working_dir/
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
 #.vscode/
+.vscode/launch.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
