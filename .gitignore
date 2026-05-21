@@ -6,6 +6,10 @@
 .env
 .env.*
 !.env.example
+.vite/
+node_modules/
+**/.vite/
+**/node_modules/
 
 # Secretos locales (tokens de Mapbox por plataforma)
 lib/secrets.dart
