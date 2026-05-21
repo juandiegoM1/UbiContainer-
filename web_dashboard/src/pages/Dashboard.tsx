@@ -1,13 +1,35 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     navigate('/');
   };
+
+  const navItems = [
+    { label: 'Dashboard', path: '/dashboard', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+    { label: 'Mapa', path: '/mapa', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
+    { label: 'Reportes', path: '/reportes', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { label: 'Configuracion', path: '/configuracion', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+  ];
+
+  const chartData = [
+    { label: 'Naranjas', value: 62, total: 248, color: 'bg-orange-500' },
+    { label: 'Verdes', value: 48, total: 248, color: 'bg-green-500' },
+    { label: 'Soterrados', value: 138, total: 248, color: 'bg-gray-600' },
+  ];
+
+  const recentContainers = [
+    { id: 'N-001', type: 'Naranja', zone: 'Zona Norte', status: 'Lleno', lastUpdate: 'Hace 2h' },
+    { id: 'V-042', type: 'Verde', zone: 'Zona Sur', status: 'OK', lastUpdate: 'Hace 5h' },
+    { id: 'S-012', type: 'Soterrado', zone: 'Zona Este', status: 'Mantenimiento', lastUpdate: 'Hace 1d' },
+    { id: 'N-103', type: 'Naranja', zone: 'Zona Oeste', status: 'Lleno', lastUpdate: 'Hace 3h' },
+    { id: 'V-089', type: 'Verde', zone: 'Zona Centro', status: 'OK', lastUpdate: 'Hace 8h' },
+  ];
 
   const stats = [
     { label: 'Contenedores Totales', value: '248', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', color: 'from-[#2D6A4F] to-[#3a8a65]' },
@@ -29,32 +51,18 @@ export default function Dashboard() {
           {sidebarOpen && <span className="font-bold text-lg">UbiContainer</span>}
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <a href="#" className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/15 text-white">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-            {sidebarOpen && <span>Dashboard</span>}
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-3 rounded-xl text-white/70 hover:bg-white/10 transition">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {sidebarOpen && <span>Mapa</span>}
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-3 rounded-xl text-white/70 hover:bg-white/10 transition">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            {sidebarOpen && <span>Reportes</span>}
-          </a>
-          <a href="#" className="flex items-center gap-3 px-3 py-3 rounded-xl text-white/70 hover:bg-white/10 transition">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {sidebarOpen && <span>Configuracion</span>}
-          </a>
+          {navItems.map(item => (
+            <a
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className={`flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition ${location.pathname === item.path ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10'}`}
+            >
+              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+              </svg>
+              {sidebarOpen && <span>{item.label}</span>}
+            </a>
+          ))}
         </nav>
         <div className="p-4 border-t border-white/10">
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-3 rounded-xl text-white/70 hover:bg-white/10 transition w-full">
@@ -129,13 +137,46 @@ export default function Dashboard() {
                   <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <div>
                       <p className="text-sm font-medium text-gray-800">{r.tipo}</p>
-                      <p className="text-xs text-gray-400">{r.ubicacion} • {r.hora}</p>
+                      <p className="text-xs text-gray-400">{r.ubicacion} &bull; {r.hora}</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                       r.estado === 'Pendiente' ? 'bg-yellow-100 text-yellow-700' :
                       r.estado === 'En Proceso' ? 'bg-blue-100 text-blue-700' :
                       'bg-green-100 text-green-700'
                     }`}>{r.estado}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8">
+            <div className="bg-white rounded-2xl shadow-sm p-6 lg:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Contenedores por Tipo</h2>
+              <div className="flex items-end gap-8 h-48">
+                {chartData.map((d, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                    <span className="text-sm font-bold text-gray-700 mb-2">{d.value}</span>
+                    <div className={`w-full rounded-t-lg ${d.color} transition-all duration-500`} style={{ height: `${(d.value / d.total) * 100 * 2.5}%` }} />
+                    <span className="text-xs text-gray-500 mt-2">{d.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Contenedores Recientes</h2>
+              <div className="space-y-3">
+                {recentContainers.map(c => (
+                  <div key={c.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{c.id} <span className="text-xs text-gray-400">({c.type})</span></p>
+                      <p className="text-xs text-gray-400">{c.zone} &bull; {c.lastUpdate}</p>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      c.status === 'Lleno' ? 'bg-red-100 text-red-700' :
+                      c.status === 'Mantenimiento' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>{c.status}</span>
                   </div>
                 ))}
               </div>

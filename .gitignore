@@ -10,6 +10,7 @@
 # Secretos locales (tokens de Mapbox por plataforma)
 lib/secrets.dart
 ios/Flutter/Mapbox.xcconfig
+web_dashboard/src/api/mapboxToken.ts
 
 # Archivo de instrucciones local (no versionar)
 backend_app/INSTRUCCIONES_CONTENEDORES.md

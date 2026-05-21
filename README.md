@@ -4,7 +4,7 @@ plataforma web y móvil para la gestión de residuos urbanos en EMSA Cochabamba
 ## Configuración inicial (después de clonar) y evitar poner los token de la API de Mapbox en el código e informacion sensible 
 
 Por seguridad, los **tokens y credenciales** no se versionan en este repositorio.
-Después de clonar se  debes crear los siguientes archivos locales:
+Después de clonar se  debes crear los siguientes archivos locales para que pueda funcionar sin problemas:
 
 ### 1. Backend (FastAPI)
 
