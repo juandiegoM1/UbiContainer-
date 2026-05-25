@@ -39,6 +39,16 @@ export default function Dashboard() {
     { label: 'Sensores Activos', value: '215', icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z', color: 'from-blue-500 to-blue-600' },
   ];
 
+  const rutasRecoleccion = [
+    { nombre: 'Ruta Norte Prioritaria', zona: 'Zona Norte', hora: '06:30', equipo: 'Camion 01', avance: 72, prioridad: 'Alta', contenedores: 36 },
+    { nombre: 'Ruta Centro Ambiental', zona: 'Zona Centro', hora: '08:00', equipo: 'Camion 04', avance: 48, prioridad: 'Media', contenedores: 28 },
+    { nombre: 'Ruta Sur Residencial', zona: 'Zona Sur', hora: '10:30', equipo: 'Camion 02', avance: 18, prioridad: 'Media', contenedores: 31 },
+    { nombre: 'Ruta Oeste Preventiva', zona: 'Zona Oeste', hora: '14:00', equipo: 'Camion 03', avance: 0, prioridad: 'Baja', contenedores: 24 },
+  ];
+
+  const rutasActivas = rutasRecoleccion.filter(ruta => ruta.avance > 0 && ruta.avance < 100).length;
+  const contenedoresProgramados = rutasRecoleccion.reduce((total, ruta) => total + ruta.contenedores, 0);
+
   return (
     <div className="min-h-screen flex bg-gray-100">
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-[#2D6A4F] to-[#1a4a35] text-white transition-all duration-300 flex flex-col`}>
@@ -104,6 +114,79 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-8">
+            <div className="bg-white rounded-2xl shadow-sm p-6 xl:col-span-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">Plan operativo de recoleccion</h2>
+                  <p className="text-sm text-gray-400 mt-1">Seguimiento del turno actual por ruta y prioridad</p>
+                </div>
+                <span className="text-xs px-3 py-1.5 rounded-full bg-[#2D6A4F]/10 text-[#2D6A4F] font-semibold">
+                  {rutasActivas} rutas activas
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {rutasRecoleccion.map(ruta => (
+                  <div key={ruta.nombre} className="border border-gray-100 rounded-2xl p-4 hover:border-[#2D6A4F]/30 transition">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-3">
+                      <div>
+                        <p className="font-semibold text-gray-800">{ruta.nombre}</p>
+                        <p className="text-xs text-gray-400">{ruta.zona} &bull; {ruta.equipo} &bull; Salida {ruta.hora}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          ruta.prioridad === 'Alta' ? 'bg-red-100 text-red-700' :
+                          ruta.prioridad === 'Media' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {ruta.prioridad}
+                        </span>
+                        <span className="text-xs text-gray-400">{ruta.contenedores} contenedores</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                        <div className={`${ruta.avance >= 70 ? 'bg-[#2D6A4F]' : ruta.avance > 0 ? 'bg-yellow-500' : 'bg-gray-300'} h-2.5 rounded-full`} style={{ width: `${ruta.avance}%` }} />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-500 w-10 text-right">{ruta.avance}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-[#2D6A4F] to-[#1a4a35] rounded-2xl shadow-sm p-6 text-white">
+              <p className="text-sm text-white/70">Resumen del turno</p>
+              <h2 className="text-2xl font-bold mt-1">Operacion diaria</h2>
+              <div className="grid grid-cols-2 gap-3 mt-6">
+                <div className="bg-white/10 rounded-xl p-4">
+                  <p className="text-2xl font-bold">{rutasRecoleccion.length}</p>
+                  <p className="text-xs text-white/70">Rutas</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-4">
+                  <p className="text-2xl font-bold">{contenedoresProgramados}</p>
+                  <p className="text-xs text-white/70">Contenedores</p>
+                </div>
+              </div>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">Prioridad alta</span>
+                  <span className="font-semibold">Zona Norte</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">Proxima salida</span>
+                  <span className="font-semibold">14:00</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">Estado general</span>
+                  <span className="font-semibold">En progreso</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Estado de Contenedores</h2>
