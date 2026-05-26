@@ -13,6 +13,22 @@ const reports = [
 
 const estadoFiltros = ['Todos', 'Pendiente', 'En Proceso', 'Atendido'];
 
+const weeklySummary = [
+  { day: 'Lun', count: 4 },
+  { day: 'Mar', count: 7 },
+  { day: 'Mie', count: 3 },
+  { day: 'Jue', count: 8 },
+  { day: 'Vie', count: 5 },
+  { day: 'Sab', count: 2 },
+  { day: 'Dom', count: 6 },
+];
+
+const tipoResumen = [
+  { tipo: 'Vertedero Ilegal', total: 18, atendidos: 12, pendientes: 4, enProceso: 2, color: 'bg-red-500' },
+  { tipo: 'Contenedor Danado', total: 9, atendidos: 5, pendientes: 2, enProceso: 2, color: 'bg-yellow-500' },
+  { tipo: 'Contenedor Lleno', total: 11, atendidos: 8, pendientes: 2, enProceso: 1, color: 'bg-orange-500' },
+];
+
 export default function Reportes() {
   const [filtro, setFiltro] = useState('Todos');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -145,6 +161,42 @@ export default function Reportes() {
             {filtrados.length === 0 && (
               <div className="p-8 text-center text-gray-400 text-sm">No hay reportes con ese filtro.</div>
             )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8">
+            <div className="bg-white rounded-2xl shadow-sm p-6 lg:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Reportes por dia (esta semana)</h2>
+              <div className="flex items-end gap-4 h-40">
+                {weeklySummary.map((d, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                    <span className="text-xs font-bold text-gray-700 mb-1">{d.count}</span>
+                    <div className={`w-full rounded-t-lg bg-[#2D6A4F] transition-all duration-500`} style={{ height: `${(d.count / 10) * 100}%` }} />
+                    <span className="text-xs text-gray-500 mt-2">{d.day}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Resumen por tipo</h2>
+              <div className="space-y-4">
+                {tipoResumen.map((t, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-700 font-medium">{t.tipo}</span>
+                      <span className="text-gray-500">{t.total} total</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                      <div className={`${t.color} h-2 rounded-full`} style={{ width: `${(t.atendidos / t.total) * 100}%` }} />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>{t.atendidos} atendidos</span>
+                      <span>{t.pendientes} pendientes</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </main>
       </div>
