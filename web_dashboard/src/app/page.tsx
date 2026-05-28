@@ -2,45 +2,37 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-type DemoCredential = {
-  role: string;
-  email: string;
-  password: string;
-  description: string;
-  accent: string;
-};
-
-const demoCredentials: DemoCredential[] = [
-  {
-    role: "Administrador",
-    email: "admin@ubicontainer.com",
-    password: "123456",
-    description: "Acceso completo al panel de control",
-    accent: "border-[#2D6A4F] bg-[#2D6A4F]/5",
-  },
-  {
-    role: "Operador",
-    email: "operador@ubicontainer.com",
-    password: "123456",
-    description: "Revision de rutas y contenedores",
-    accent: "border-[#6B4F2A] bg-[#6B4F2A]/5",
-  },
-];
+import {
+  demoCredentials,
+  findCredential,
+  saveSession,
+  type DemoCredential,
+} from "@/lib/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    const credential = findCredential(email, password);
+    if (!credential) {
+      setError("Credenciales incorrectas. Usa una cuenta demo de la izquierda.");
+      return;
+    }
+
+    saveSession(credential);
     router.push("/dashboard");
   };
 
   const fillDemoCredential = (credential: DemoCredential) => {
     setEmail(credential.email);
     setPassword(credential.password);
+    setError("");
   };
 
   return (
@@ -50,16 +42,27 @@ export default function Login() {
           <div>
             <span className="text-xs font-bold tracking-[0.25em] text-[#2D6A4F] uppercase">Sistema web</span>
             <h2 className="text-3xl font-bold text-gray-800 mt-4">Gestion inteligente de contenedores urbanos</h2>
-            <p className="text-gray-500 mt-4 leading-relaxed">Ingresa con una cuenta demo para revisar el dashboard, rutas operativas, mapa, reportes y configuracion del sistema.</p>
+            <p className="text-gray-500 mt-4 leading-relaxed">
+              Ingresa con una cuenta demo para revisar el dashboard segun tu rol: administrador, gerente u operador.
+            </p>
           </div>
-          <div className="grid sm:grid-cols-2 gap-4 mt-8">
-            {demoCredentials.map(credential => (
-              <button key={credential.email} type="button" onClick={() => fillDemoCredential(credential)} className={`text-left rounded-2xl border-2 p-4 hover:shadow-md transition ${credential.accent}`}>
-                <p className="font-semibold text-gray-800">{credential.role}</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 gap-4 mt-8">
+            {demoCredentials.map((credential) => (
+              <button
+                key={credential.email}
+                type="button"
+                onClick={() => fillDemoCredential(credential)}
+                className={`text-left rounded-2xl border-2 p-4 hover:shadow-md transition ${credential.accent}`}
+              >
+                <p className="font-semibold text-gray-800">{credential.roleLabel}</p>
                 <p className="text-xs text-gray-500 mt-1">{credential.description}</p>
                 <div className="mt-4 text-xs text-gray-500 space-y-1">
-                  <p><span className="font-semibold text-gray-700">Email:</span> {credential.email}</p>
-                  <p><span className="font-semibold text-gray-700">Clave:</span> {credential.password}</p>
+                  <p>
+                    <span className="font-semibold text-gray-700">Email:</span> {credential.email}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-700">Clave:</span> {credential.password}
+                  </p>
                 </div>
               </button>
             ))}
@@ -79,20 +82,51 @@ export default function Login() {
           </div>
           <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
             <p className="text-sm font-semibold text-yellow-800">Acceso demo disponible</p>
-            <p className="text-xs text-yellow-700 mt-1">Puedes usar cualquier tarjeta de la izquierda para rellenar el formulario automaticamente.</p>
+            <p className="text-xs text-yellow-700 mt-1">
+              Puedes usar cualquier tarjeta de la izquierda para rellenar el formulario automaticamente.
+            </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#2D6A4F] focus:border-transparent outline-none transition" placeholder="tu@email.com" required />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#2D6A4F] focus:border-transparent outline-none transition"
+                placeholder="tu@email.com"
+                required
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Contrasena</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#2D6A4F] focus:border-transparent outline-none transition" placeholder="********" required />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#2D6A4F] focus:border-transparent outline-none transition"
+                placeholder="********"
+                required
+              />
             </div>
-            <button type="submit" className="w-full bg-gradient-to-r from-[#2D6A4F] to-[#1a4a35] text-white py-3 rounded-xl font-semibold hover:from-[#3a8a65] hover:to-[#2D6A4F] transition shadow-lg">Iniciar Sesion</button>
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-[#2D6A4F] to-[#1a4a35] text-white py-3 rounded-xl font-semibold hover:from-[#3a8a65] hover:to-[#2D6A4F] transition shadow-lg"
+            >
+              Iniciar Sesion
+            </button>
           </form>
-          <p className="text-center text-sm text-gray-500 mt-6">Olvidaste tu contrasena? <a href="#" className="text-[#2D6A4F] hover:underline font-medium">Recuperar</a></p>
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Olvidaste tu contrasena?{" "}
+            <a href="#" className="text-[#2D6A4F] hover:underline font-medium">
+              Recuperar
+            </a>
+          </p>
         </div>
       </div>
     </div>
