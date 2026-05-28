@@ -10,6 +10,7 @@ import {
   type AuthSession,
 } from "@/lib/auth";
 import { clearToken } from "@/lib/api";
+import { applySettings, loadSettings } from "@/lib/settings";
 
 type NavItem = {
   label: string;
@@ -52,6 +53,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   useEffect(() => {
+    applySettings(loadSettings());
+
     const currentSession = getSession();
     if (!currentSession) {
       router.replace("/");
@@ -83,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = allNavItems.filter((item) => canAccessPath(session.role, item.path));
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
       <aside
         className={`${sidebarOpen ? "w-64" : "w-20"} bg-gradient-to-b from-[#2D6A4F] to-[#1a4a35] text-white transition-all duration-300 flex flex-col flex-shrink-0`}
       >
@@ -141,7 +144,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <header className="bg-white dark:bg-gray-800 shadow-sm px-6 py-4 flex items-center justify-between flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 hover:bg-gray-100 rounded-lg transition"
@@ -152,8 +155,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">{session.email}</p>
-              <p className="text-xs text-gray-500">{session.roleLabel}</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{session.email}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{session.roleLabel}</p>
             </div>
             <div className="w-9 h-9 bg-gradient-to-br from-[#2D6A4F] to-[#6B4F2A] rounded-full flex items-center justify-center text-white text-sm font-semibold">
               {session.initials}

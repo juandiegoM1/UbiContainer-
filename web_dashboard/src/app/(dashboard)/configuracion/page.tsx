@@ -1,72 +1,184 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/api/config";
+import { LoadingState, PageHeader } from "@/components/ui";
+import {
+  applySettings,
+  defaultSettings,
+  loadSettings,
+  resetSettings,
+  saveSettings,
+  type AppSettings,
+} from "@/lib/settings";
+
+function Toggle({
+  enabled,
+  onChange,
+  label,
+}: {
+  enabled: boolean;
+  onChange: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label={label}
+      onClick={onChange}
+      className={`w-12 h-6 rounded-full transition relative ${enabled ? "bg-[#2D6A4F]" : "bg-gray-300"}`}
+    >
+      <div
+        className={`w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition ${enabled ? "left-6" : "left-0.5"}`}
+      />
+    </button>
+  );
+}
 
 export default function ConfiguracionPage() {
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState("es");
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+  const [ready, setReady] = useState(false);
+  const [savedNotice, setSavedNotice] = useState(false);
+
+  useEffect(() => {
+    const stored = loadSettings();
+    setSettings(stored);
+    applySettings(stored);
+    setReady(true);
+  }, []);
+
+  const updateSettings = (patch: Partial<AppSettings>) => {
+    setSettings((prev) => {
+      const next = { ...prev, ...patch };
+      saveSettings(next);
+      return next;
+    });
+    setSavedNotice(true);
+    window.setTimeout(() => setSavedNotice(false), 2500);
+  };
+
+  const handleReset = () => {
+    const restored = resetSettings();
+    setSettings(restored);
+    setSavedNotice(true);
+    setTimeout(() => setSavedNotice(false), 2500);
+  };
+
+  if (!ready) {
+    return (
+      <>
+        <PageHeader title="Configuracion" description="Personaliza el panel de administracion" />
+        <LoadingState message="Cargando preferencias..." />
+      </>
+    );
+  }
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-gray-800 mb-2">Configuracion</h1>
-      <p className="text-gray-500 mb-6">Personaliza el panel de administracion</p>
+      <PageHeader
+        title="Configuracion"
+        description="Tus preferencias se guardan en este navegador"
+        action={
+          savedNotice ? (
+            <span className="text-sm font-medium text-[#2D6A4F] bg-green-50 px-3 py-1.5 rounded-lg">
+              Cambios guardados
+            </span>
+          ) : null
+        }
+      />
 
       <div className="max-w-2xl space-y-5">
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Notificaciones</h2>
-          <div className="flex items-center justify-between py-3 border-b border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Notificaciones</h2>
+          <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
             <div>
-              <p className="text-sm font-medium text-gray-800">Alertas de contenedores llenos</p>
-              <p className="text-xs text-gray-400">Recibe una notificacion cuando un contenedor este al 80%</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Alertas de contenedores llenos</p>
+              <p className="text-xs text-gray-400">Aviso cuando un contenedor este al 80%</p>
             </div>
-            <button onClick={() => setNotifications(!notifications)} className={`w-12 h-6 rounded-full transition relative ${notifications ? "bg-[#2D6A4F]" : "bg-gray-300"}`}>
-              <div className={`w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition ${notifications ? "left-6" : "left-0.5"}`} />
-            </button>
+            <Toggle
+              label="Alertas de contenedores llenos"
+              enabled={settings.alertsFullContainers}
+              onChange={() => updateSettings({ alertsFullContainers: !settings.alertsFullContainers })}
+            />
           </div>
           <div className="flex items-center justify-between py-3">
             <div>
-              <p className="text-sm font-medium text-gray-800">Nuevos reportes ciudadanos</p>
-              <p className="text-xs text-gray-400">Notificacion cuando llegue un reporte de vertedero</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Nuevos reportes ciudadanos</p>
+              <p className="text-xs text-gray-400">Aviso cuando llegue un reporte de vertedero</p>
             </div>
-            <button className="w-12 h-6 rounded-full bg-[#2D6A4F] relative">
-              <div className="w-5 h-5 bg-white rounded-full shadow absolute top-0.5 left-6" />
-            </button>
+            <Toggle
+              label="Nuevos reportes ciudadanos"
+              enabled={settings.alertsCitizenReports}
+              onChange={() => updateSettings({ alertsCitizenReports: !settings.alertsCitizenReports })}
+            />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Apariencia</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Apariencia</h2>
           <div className="flex items-center justify-between py-3">
             <div>
-              <p className="text-sm font-medium text-gray-800">Modo oscuro</p>
-              <p className="text-xs text-gray-400">Cambia la interfaz a tema oscuro</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Modo oscuro</p>
+              <p className="text-xs text-gray-400">Tema oscuro en el panel (basico)</p>
             </div>
-            <button onClick={() => setDarkMode(!darkMode)} className={`w-12 h-6 rounded-full transition relative ${darkMode ? "bg-[#2D6A4F]" : "bg-gray-300"}`}>
-              <div className={`w-5 h-5 bg-white rounded-full shadow absolute top-0.5 transition ${darkMode ? "left-6" : "left-0.5"}`} />
-            </button>
+            <Toggle
+              label="Modo oscuro"
+              enabled={settings.darkMode}
+              onChange={() => updateSettings({ darkMode: !settings.darkMode })}
+            />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Idioma</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Idioma</h2>
           <div className="grid grid-cols-2 gap-3">
-            {[{ code: "es", label: "Espanol" }, { code: "en", label: "English" }].map(l => (
-              <button key={l.code} onClick={() => setLanguage(l.code)} className={`px-4 py-3 rounded-xl border text-sm font-medium transition ${language === l.code ? "border-[#2D6A4F] bg-green-50 text-[#2D6A4F]" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+            {[
+              { code: "es" as const, label: "Espanol" },
+              { code: "en" as const, label: "English" },
+            ].map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => updateSettings({ language: l.code })}
+                className={`px-4 py-3 rounded-xl border text-sm font-medium transition ${
+                  settings.language === l.code
+                    ? "border-[#2D6A4F] bg-green-50 dark:bg-green-900/30 text-[#2D6A4F]"
+                    : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                }`}
+              >
                 {l.label}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Informacion del Sistema</h2>
-          <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex justify-between"><span>Version</span><span className="font-medium text-gray-800">1.0.0</span></div>
-            <div className="flex justify-between"><span>Backend URL</span><span className="font-medium text-gray-800">192.168.1.2:8000</span></div>
-            <div className="flex justify-between"><span>Entorno</span><span className="font-medium text-gray-800">Desarrollo</span></div>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Informacion del Sistema</h2>
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+            <div className="flex justify-between">
+              <span>Version</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">1.0.0</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span>Backend URL</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100 text-right break-all">{API_BASE_URL}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Entorno</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">Desarrollo</span>
+            </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={handleReset}
+          className="w-full py-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+        >
+          Restaurar valores por defecto
+        </button>
       </div>
     </>
   );
