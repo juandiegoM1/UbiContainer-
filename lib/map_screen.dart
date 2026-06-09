@@ -11,10 +11,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:ubi_container_new/models.dart';
 import 'package:ubi_container_new/services/report_queue_service.dart';
+import 'package:ubi_container_new/services/local_dump_report_store.dart';
 import 'package:ubi_container_new/auth_service.dart';
 import 'package:ubi_container_new/config.dart';
 import 'package:ubi_container_new/dump_report_screen.dart' hide backendUrl;
 import 'package:ubi_container_new/welcome_screen.dart';
+import 'package:ubi_container_new/mapbox_config.dart';
+import 'package:ubi_container_new/services/supabase_container_service.dart';
+
 
 const String backendUrl = Config.backendUrl;
 
@@ -231,6 +235,48 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     _initialize();
     _reports = _reportQueueService.pendingReports;
     _reportQueueService.addListener(_onReportsChanged);
+    _tabController.addListener(_onTabChanged);
+    _loadAllReports();
+  }
+
+  void _onTabChanged() {
+    // Al entrar a la pestaña de Reportes (índice 1), recargar para incluir
+    // los vertederos guardados localmente.
+    if (_tabController.indexIsChanging && _tabController.index == 1) {
+      _loadAllReports();
+    }
+  }
+
+  // Combina los reportes en cola (memoria) con los reportes de vertederos
+  // guardados localmente (persistentes en SharedPreferences).
+  Future<void> _loadAllReports() async {
+    final dumps = await LocalDumpReportStore.getAll();
+    final dumpReportes = dumps.map(_dumpToReporte).toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    if (!mounted) return;
+    setState(() {
+      _reports = [
+        ..._reportQueueService.pendingReports,
+        ...dumpReportes,
+      ];
+    });
+  }
+
+  Reporte _dumpToReporte(DumpReport d) {
+    final tieneDescripcion = d.description != null && d.description!.isNotEmpty;
+    return Reporte(
+      id: d.id,
+      userId: d.userId,
+      containerId: 'Vertedero ilegal',
+      tipo: ReporteTipo.otro,
+      comentario: tieneDescripcion ? d.description : 'Vertedero ilegal reportado',
+      timestamp: d.timestamp,
+      estado: ReporteEstado.pendiente,
+      containerType: 'vertedero',
+      latitude: d.latitude,
+      longitude: d.longitude,
+    );
   }
 
   Future<void> _initTts() async {
@@ -359,9 +405,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
   
   void _onReportsChanged() {
     if (mounted) {
-      setState(() {
-        _reports = _reportQueueService.pendingReports;
-      });
+      _loadAllReports();
     }
   }
 
@@ -468,6 +512,33 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
 
   Future<void> _fetchContainers() async {
     try {
+      try {
+        final supabaseData = await SupabaseContainerService.fetchContainers();
+        final fetchedContainers = supabaseData
+            .map((json) => Contenedor.fromJson(json))
+            .toList();
+        print('📦 Contenedores recibidos desde Supabase: ${fetchedContainers.length}');
+
+        if (fetchedContainers.isEmpty) {
+          throw Exception('Supabase no devolvio contenedores');
+        }
+
+        int totalVerdes = fetchedContainers.where((c) => c.type == 'verde').length;
+        int totalNaranjas = fetchedContainers.where((c) => c.type == 'naranja').length;
+        int totalSoterrados = fetchedContainers.where((c) => c.type == 'soterrado').length;
+        print('   📊 Supabase: $totalVerdes verdes, $totalNaranjas naranjas y $totalSoterrados soterrados');
+
+        setState(() {
+          _containers = fetchedContainers;
+        });
+        _findNearestContainer();
+        _filterContainers();
+        _updateMarkers();
+        return;
+      } catch (supabaseError) {
+        print('⚠️ No se pudo cargar desde Supabase, usando FastAPI: $supabaseError');
+      }
+
       final response = await http.get(
         Uri.parse('$backendUrl/containers'),
         headers: {'ngrok-skip-browser-warning': 'true'},
@@ -567,6 +638,44 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
       _nearestContainer = nearest;
       _nearestDistance = minDistance;
     });
+  }
+
+  void _applyFilter(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+    });
+    _filterContainers();
+    Future.microtask(() {
+      _findNearestContainer();
+      _updateMarkers();
+    });
+  }
+
+  Future<void> _configureMapOrnaments(MapboxMap map) async {
+    // La barra de escala (2mi / 6mi / 12mi) solo indica la escala del mapa;
+    // no aporta a la app y tapa la zona de búsqueda, así que se oculta.
+    await map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+
+    // Brújula: esquina inferior derecha, por encima del TabBar y lejos de los FABs.
+    await map.compass.updateSettings(CompassSettings(
+      enabled: true,
+      position: OrnamentPosition.BOTTOM_RIGHT,
+      marginRight: 12,
+      marginBottom: 110,
+    ));
+  }
+
+  Color _getContainerMarkerColor(String type) {
+    switch (type) {
+      case 'soterrado':
+        return Colors.red;
+      case 'naranja':
+        return Colors.orange;
+      case 'verde':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
   }
 
   void _filterContainers() {
@@ -680,7 +789,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     _routeInstructions = null;
 
     try {
-      const String mapboxToken = mapboxAccessToken;
+      const String mapboxToken = MapboxConfig.accessToken;
       
       String origin = '${_currentPosition!.longitude},${_currentPosition!.latitude}';
       String destination = '${container.longitude},${container.latitude}';
@@ -978,9 +1087,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
 
       final polyline = PolylineAnnotationOptions(
         geometry: LineString(coordinates: positions),
-        lineColor: Colors.blue.shade700.value,
-        lineWidth: 8.0, // Más gruesa para mejor visibilidad
-        lineOpacity: 0.9,
+        lineColor: const Color(0xff6BA3D6).value,
+        lineWidth: 8.0,
+        lineOpacity: 0.58,
       );
 
       await polylineAnnotationManager!.create(polyline);
@@ -1294,7 +1403,6 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     await circleAnnotationManager!.deleteAll();
 
     List<CircleAnnotationOptions> circleAnnotations = [];
-    List<PointAnnotationOptions> pointAnnotations = [];
 
     if (_currentPosition != null) {
       print('📍 Agregando marcador de usuario en: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
@@ -1314,99 +1422,73 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
       );
     }
 
-    List<Contenedor> containersToShow = (_selectedFilter != 'todos' || 
+    List<Contenedor> containersToShow = (_selectedFilter != 'todos' ||
                                          _searchController.text.isNotEmpty)
         ? _filteredContainers
         : _containers;
 
-    Map<String, List<Contenedor>> groupedContainers = {};
-    for (var container in containersToShow) {
-      if (container.latitude != 0.0 && container.longitude != 0.0) {
-        String key = '${container.latitude.toStringAsFixed(6)},${container.longitude.toStringAsFixed(6)}';
-        if (!groupedContainers.containsKey(key)) {
-          groupedContainers[key] = [];
-        }
-        groupedContainers[key]!.add(container);
-      }
+    // Agrupa por coordenada exacta solo para calcular un pequeño desplazamiento
+    // cuando varios contenedores comparten la misma ubicación.
+    final Map<String, List<Contenedor>> groupedByLocation = {};
+    for (final container in containersToShow) {
+      if (container.latitude == 0.0 && container.longitude == 0.0) continue;
+      final key =
+          '${container.latitude.toStringAsFixed(6)},${container.longitude.toStringAsFixed(6)}';
+      groupedByLocation.putIfAbsent(key, () => []).add(container);
     }
 
-    print('📦 Agregando ${containersToShow.length} contenedores en ${groupedContainers.length} ubicaciones');
+    int markersCreated = 0;
+    groupedByLocation.forEach((_, containers) {
+      final baseLat = containers.first.latitude;
+      final baseLon = containers.first.longitude;
+      final count = containers.length;
 
-    groupedContainers.forEach((key, containers) {
-      var firstContainer = containers.first;
-      int count = containers.length;
-      
-      int soterrados = containers.where((c) => c.type == 'soterrado').length;
-      int verdes = containers.where((c) => c.type == 'verde').length;
-      int naranjas = containers.where((c) => c.type == 'naranja').length;
-      
-      print('   ✓ Ubicación ${firstContainer.latitude}, ${firstContainer.longitude}: $count contenedores (${verdes} verdes, ${naranjas} naranjas, ${soterrados} soterrados)');
+      for (int i = 0; i < count; i++) {
+        final container = containers[i];
+        double lat = baseLat;
+        double lon = baseLon;
 
-      Color circleColor = Colors.green;
-      if (soterrados > 0) {
-        circleColor = Colors.red;
-      } else if (naranjas > 0) {
-        circleColor = Colors.orange;
-      } else {
-        circleColor = Colors.green;
-      }
-      
-      bool isNearest = _nearestContainer != null &&
-          firstContainer.id == _nearestContainer!.id &&
-          firstContainer.latitude == _nearestContainer!.latitude &&
-          firstContainer.longitude == _nearestContainer!.longitude;
-      
-      double radius = 8.0;
-      
-      if (isNearest) {
-        circleColor = const Color(0xff6D28D9);
-      }
-      
-      circleAnnotations.add(
-        CircleAnnotationOptions(
-          geometry: Point(
-            coordinates: Position(
-              firstContainer.longitude,
-              firstContainer.latitude,
-            ),
-          ),
-          circleRadius: radius,
-          circleColor: circleColor.value,
-          circleStrokeColor: isNearest ? const Color(0xffA78BFA).value : Colors.white.value,
-          circleStrokeWidth: 2.0,
-        ),
-      );
+        if (count > 1) {
+          // Dispersa en círculo ~5 m para que cada contenedor sea visible.
+          final angle = (2 * math.pi * i) / count;
+          const offsetDeg = 0.000045;
+          lat = baseLat + offsetDeg * math.cos(angle);
+          lon = baseLon +
+              offsetDeg *
+                  math.sin(angle) /
+                  math.cos(baseLat * math.pi / 180);
+        }
 
-      if (count > 1) {
-        pointAnnotations.add(
-          PointAnnotationOptions(
+        final bool isNearest = _nearestContainer != null &&
+            container.id == _nearestContainer!.id;
+        Color circleColor = isNearest
+            ? const Color(0xff6D28D9)
+            : _getContainerMarkerColor(container.type);
+
+        circleAnnotations.add(
+          CircleAnnotationOptions(
             geometry: Point(
-              coordinates: Position(
-                firstContainer.longitude,
-                firstContainer.latitude,
-              ),
+              coordinates: Position(lon, lat),
             ),
-            textField: count.toString(),
-            textSize: 14.0,
-            textColor: Colors.white.value,
-            textHaloColor: Colors.black.value,
-            textHaloWidth: 2.0,
-            textHaloBlur: 0.5,
-            iconOpacity: 0.0,
-            iconSize: 0.0,
+            circleRadius: 8.0,
+            circleColor: circleColor.value,
+            circleStrokeColor:
+                isNearest ? const Color(0xffA78BFA).value : Colors.white.value,
+            circleStrokeWidth: 2.0,
           ),
         );
+        markersCreated++;
       }
     });
+
+    print(
+      '📦 Marcadores individuales: $markersCreated de ${containersToShow.length} contenedores '
+      '(${groupedByLocation.length} ubicaciones base)',
+    );
 
     if (circleAnnotations.isNotEmpty) {
       print('✅ Creando ${circleAnnotations.length} marcadores circulares');
       await circleAnnotationManager!.createMulti(circleAnnotations);
-    }
-
-    if (pointAnnotations.isNotEmpty) {
-      print('✅ Creando ${pointAnnotations.length} marcadores de texto');
-      await pointAnnotationManager!.createMulti(pointAnnotations);
     }
   }
 
@@ -1494,7 +1576,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                     onMapCreated: (MapboxMap map) async {
                       print('✅ Mapa creado correctamente');
                       mapboxMap = map;
-                      
+                      await _configureMapOrnaments(map);
+
                       try {
                         pointAnnotationManager = await map.annotations.createPointAnnotationManager();
                         print('✅ PointAnnotationManager creado');
@@ -1586,126 +1669,110 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                 },
               ),
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            const SizedBox(height: 10),
+            Row(
               children: [
-                _buildFilterChip(
+                Expanded(child: _buildFilterChipInSlot(
                   label: 'Todos',
                   icon: Icons.all_inclusive,
                   isSelected: _selectedFilter == 'todos',
-                  onTap: () {
-                    setState(() {
-                      _selectedFilter = 'todos';
-                    });
-                    _filterContainers(); // Filtrar primero
-                    Future.microtask(() {
-                      _findNearestContainer(); // Luego actualizar el más cercano según el filtro
-                      _updateMarkers();
-                    });
-                  },
-                ),
-                _buildFilterChip(
+                  onTap: () => _applyFilter('todos'),
+                )),
+                const SizedBox(width: 4),
+                Expanded(child: _buildFilterChipInSlot(
                   label: 'Verde',
                   icon: Icons.circle,
                   color: Colors.green,
                   isSelected: _selectedFilter == 'verde',
-                  onTap: () {
-                    setState(() {
-                      _selectedFilter = 'verde';
-                    });
-                    _filterContainers(); // Filtrar primero
-                    Future.microtask(() {
-                      _findNearestContainer(); // Luego actualizar el más cercano según el filtro
-                      _updateMarkers();
-                    });
-                  },
-                ),
-                _buildFilterChip(
+                  onTap: () => _applyFilter('verde'),
+                )),
+                const SizedBox(width: 4),
+                Expanded(child: _buildFilterChipInSlot(
                   label: 'Naranja',
                   icon: Icons.circle,
                   color: Colors.orange,
                   isSelected: _selectedFilter == 'naranja',
-                  onTap: () {
-                    setState(() {
-                      _selectedFilter = 'naranja';
-                    });
-                    _filterContainers(); // Filtrar primero
-                    Future.microtask(() {
-                      _findNearestContainer(); // Luego actualizar el más cercano según el filtro
-                      _updateMarkers();
-                    });
-                  },
-                ),
-                _buildFilterChip(
+                  onTap: () => _applyFilter('naranja'),
+                )),
+                const SizedBox(width: 4),
+                Expanded(child: _buildFilterChipInSlot(
                   label: 'Soterrado',
                   icon: Icons.circle,
                   color: Colors.red,
                   isSelected: _selectedFilter == 'soterrado',
-                  onTap: () {
-                    setState(() {
-                      _selectedFilter = 'soterrado';
-                    });
-                    _filterContainers();
-                    Future.microtask(() {
-                      _findNearestContainer();
-                      _updateMarkers();
-                    });
-                  },
-                ),
+                  onTap: () => _applyFilter('soterrado'),
+                )),
               ],
             ),
             if (_nearestContainer != null)
               Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.amber,
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.withOpacity(0.4),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _goToNearestContainer,
-                      borderRadius: BorderRadius.circular(25),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.near_me,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Más cercano: ${_formatDistance(_nearestDistance)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                padding: const EdgeInsets.only(top: 10),
+                child: Center(child: _buildNearestPill()),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNearestPill() {
+    const chipColor = Color(0xffF59E0B);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _goToNearestContainer,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: chipColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: chipColor, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: chipColor.withOpacity(0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.near_me, size: 15, color: Colors.white),
+              const SizedBox(width: 5),
+              Text(
+                'Más cercano: ${_formatDistance(_nearestDistance)}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Envuelve la píldora para que quepa en su columna sin overflow.
+  Widget _buildFilterChipInSlot({
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: _buildFilterChip(
+          label: label,
+          icon: icon,
+          isSelected: isSelected,
+          onTap: onTap,
+          color: color,
         ),
       ),
     );
@@ -1718,29 +1785,25 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     required VoidCallback onTap,
     Color? color,
   }) {
+    final chipColor = color ?? const Color(0xffA78767);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected
-                ? (color ?? const Color(0xffA78767))
-                : Colors.white,
+            color: isSelected ? chipColor : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected
-                  ? (color ?? const Color(0xffA78767))
-                  : Colors.grey.shade300,
+              color: isSelected ? chipColor : Colors.grey.shade300,
               width: 2,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: (color ?? const Color(0xffA78767))
-                          .withOpacity(0.3),
+                      color: chipColor.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -1752,21 +1815,17 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
             children: [
               Icon(
                 icon,
-                size: 16,
-                color: isSelected
-                    ? Colors.white
-                    : (color ?? Colors.grey),
+                size: 15,
+                color: isSelected ? Colors.white : chipColor,
               ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black87,
+                  fontWeight:
+                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 11.5,
                 ),
               ),
             ],
@@ -2541,28 +2600,30 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
 
   Widget _buildReportsTab() {
     return Container(
-      color: const Color(0xff122320),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xff2D6A4F), Color(0xff6B4F2A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       child: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              decoration: const BoxDecoration(
-                color: Color(0xff122320),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.2),
+                      color: Colors.white.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
                       Icons.assignment,
-                      color: Colors.orange,
+                      color: Colors.white,
                       size: 28,
                     ),
                   ),
@@ -2580,28 +2641,37 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
             ),
             Expanded(
               child: _reports.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.assignment_outlined,
-                            size: 80,
-                            color: Colors.white24,
+                            Icons.inbox_rounded,
+                            size: 72,
+                            color: Colors.white.withOpacity(0.6),
                           ),
-                          SizedBox(height: 16),
-                          Text(
-                            'No hay reportes pendientes',
+                          const SizedBox(height: 14),
+                          const Text(
+                            'No hay reportes todavía',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.white54,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tus reportes aparecerán aquí.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.85),
                             ),
                           ),
                         ],
                       ),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                       itemCount: _reports.length,
                       itemBuilder: (context, index) {
                         final report = _reports[index];
@@ -2616,36 +2686,80 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
   }
 
   Widget _buildReportCard(Reporte report) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
+    final bool esVertedero = report.containerType == 'vertedero';
+    final String titulo =
+        esVertedero ? 'Vertedero Ilegal' : _getReportTypeString(report.tipo);
+    final Color accent = _getReportTypeColor(report);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.18),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      color: const Color(0xff122320),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.10),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
               children: [
-                Text(
-                  'ID: ${report.id.length > 8 ? report.id.substring(0, 8) : report.id}...',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getReportTypeIcon(report),
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        titulo,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          color: Color(0xff1B3A2B),
+                        ),
+                      ),
+                      Text(
+                        'ID: ${report.id.length > 8 ? report.id.substring(0, 8) : report.id}…',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 10,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
                     color: _getReportStateColor(report.estado),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     _getReportStateString(report.estado),
@@ -2658,96 +2772,145 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              _getReportTypeString(report.tipo),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Descripción: ${report.description}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            if (report.comentario != null &&
-                report.comentario!.isNotEmpty &&
-                report.description != report.comentario)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  'Comentario: ${report.comentario}',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 8),
-            Row(
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.access_time,
-                  size: 14,
-                  color: Colors.white54,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  report.timestamp.toLocal().toString().split('.')[0],
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 12,
+                if (report.description != null &&
+                    report.description!.isNotEmpty)
+                  _reportInfoRow(Icons.description_outlined, report.description!),
+                if (report.comentario != null &&
+                    report.comentario!.isNotEmpty &&
+                    report.description != report.comentario)
+                  _reportInfoRow(
+                    Icons.chat_bubble_outline,
+                    report.comentario!,
                   ),
+                if (!esVertedero)
+                  _reportInfoRow(
+                    Icons.inventory_2_outlined,
+                    'Contenedor: ${report.containerId}',
+                  ),
+                _reportInfoRow(
+                  Icons.schedule,
+                  report.timestamp.toLocal().toString().split('.')[0],
                 ),
-              ],
-            ),
-            if (report.estado == ReporteEstado.error ||
-                report.estado != ReporteEstado.enviado)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (report.estado == ReporteEstado.error)
-                      TextButton.icon(
-                        onPressed: () => _retryReport(report),
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Colors.lightBlueAccent,
+                if (report.estado != ReporteEstado.enviado) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (report.estado == ReporteEstado.error) ...[
+                        OutlinedButton.icon(
+                          onPressed: () => _retryReport(report),
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('Reintentar'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xff2D6A4F),
+                            side: const BorderSide(color: Color(0xff2D6A4F)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
-                        label: const Text(
-                          'Reintentar',
-                          style: TextStyle(
-                            color: Colors.lightBlueAccent,
+                        const SizedBox(width: 10),
+                      ],
+                      ElevatedButton.icon(
+                        onPressed: () => _confirmDeleteReport(report),
+                        icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                        label: const Text('Eliminar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xffE53935),
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shadowColor: Colors.black54,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 11,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.3,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                    if (report.estado != ReporteEstado.enviado)
-                      TextButton.icon(
-                        onPressed: () => _deleteReport(report),
-                        icon: const Icon(
-                          Icons.delete_forever,
-                          color: Colors.grey,
-                        ),
-                        label: const Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
+  Widget _reportInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xff6B4F2A)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xff3A3A3A),
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getReportTypeIcon(Reporte report) {
+    if (report.containerType == 'vertedero') {
+      return Icons.warning_amber_rounded;
+    }
+    switch (report.tipo) {
+      case ReporteTipo.lleno:
+        return Icons.delete_rounded;
+      case ReporteTipo.fueraDeServicio:
+        return Icons.build_rounded;
+      case ReporteTipo.otro:
+        return Icons.report_problem_rounded;
+    }
+  }
+
+  Color _getReportTypeColor(Reporte report) {
+    if (report.containerType == 'vertedero') {
+      return const Color(0xffD9822B);
+    }
+    switch (report.tipo) {
+      case ReporteTipo.lleno:
+        return const Color(0xff2D6A4F);
+      case ReporteTipo.fueraDeServicio:
+        return const Color(0xff6B4F2A);
+      case ReporteTipo.otro:
+        return const Color(0xff8B5E3C);
+    }
+  }
+
   Widget _buildProfileTab() {
     return Container(
-      color: const Color(0xff122320),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xff2D6A4F), Color(0xff6B4F2A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -2796,9 +2959,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xff122320),
+                  color: Colors.white.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(color: Colors.white.withOpacity(0.25)),
                 ),
                 child: Row(
                   children: [
@@ -2834,13 +2997,13 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xff122320),
+                  color: Colors.white.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  border: Border.all(color: Colors.lightGreenAccent.withOpacity(0.4)),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green),
+                    Icon(Icons.check_circle, color: Color(0xff8BC34A)),
                     SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -2857,7 +3020,7 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                           Text(
                             'Activo',
                             style: TextStyle(
-                              color: Colors.green,
+                              color: Color(0xffAEEA00),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -2891,13 +3054,14 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xffA78767),
+                    backgroundColor: const Color(0xffE53935),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 4,
+                    elevation: 6,
+                    shadowColor: Colors.black54,
                   ),
                 ),
               ),
@@ -3030,13 +3194,14 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
         children: [
           FloatingActionButton(
             heroTag: 'reportDumpStack',
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => DumpReportScreen(userEmail: widget.userEmail),
                 ),
               );
+              await _loadAllReports();
             },
             backgroundColor: Colors.orange,
             child: const Icon(
@@ -3114,9 +3279,50 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
     _showMessage('Reintentando', 'Reporte enviando...');
   }
 
-  void _deleteReport(Reporte report) {
+  Future<void> _confirmDeleteReport(Reporte report) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xff1B2E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_outline_rounded, color: Color(0xffE53935)),
+            SizedBox(width: 8),
+            Text('Eliminar reporte', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        content: const Text(
+          '¿Seguro que deseas eliminar este reporte? Esta acción no se puede deshacer.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xffE53935),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      _deleteReport(report);
+    }
+  }
+
+  void _deleteReport(Reporte report) async {
     _reportQueueService.removeReportById(report.id);
-    _showMessage('Eliminado', 'Reporte eliminado de la cola');
+    await LocalDumpReportStore.removeById(report.id);
+    await _loadAllReports();
+    _showMessage('Eliminado', 'El reporte ha sido eliminado');
   }
 
 
