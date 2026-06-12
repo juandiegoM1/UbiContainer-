@@ -56,6 +56,11 @@ const defaultForm: ContainerInput = {
   nivel_llenado: 0,
 };
 
+function formatCoord(value: number | null | undefined) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed.toFixed(5) : "N/D";
+}
+
 function isValidCoordinate(latitude: number, longitude: number) {
   return (
     Number.isFinite(latitude) &&
@@ -365,7 +370,7 @@ export default function MapaPage() {
           </div>
           <p>
             <span className="text-gray-500">Coordenadas:</span>{" "}
-            {selectedContainer.latitude.toFixed(5)}, {selectedContainer.longitude.toFixed(5)}
+            {formatCoord(selectedContainer.latitude)}, {formatCoord(selectedContainer.longitude)}
           </p>
           {selectedContainer.nombre ? (
             <p>
@@ -815,7 +820,7 @@ export default function MapaPage() {
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {c.latitude.toFixed(5)}, {c.longitude.toFixed(5)}
+                            {formatCoord(c.latitude)}, {formatCoord(c.longitude)}
                           </p>
                           {c.nombre ? (
                             <p className="text-xs text-gray-400 mt-1">{c.nombre}</p>
@@ -903,7 +908,7 @@ export default function MapaPage() {
                             </div>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {c.latitude.toFixed(5)}, {c.longitude.toFixed(5)}
+                            {formatCoord(c.latitude)}, {formatCoord(c.longitude)}
                           </p>
                           {c.nombre ? (
                             <p className="text-xs text-gray-400 mt-1">{c.nombre}</p>

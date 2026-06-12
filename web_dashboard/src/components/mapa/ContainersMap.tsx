@@ -396,13 +396,30 @@ export default function ContainersMap({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [-66.1568, -17.3895],
-      zoom: 12,
-    });
+    if (!MAPBOX_TOKEN.trim()) {
+      setUserLocationError(
+        "Falta el token de Mapbox. Agrega NEXT_PUBLIC_MAPBOX_TOKEN en Vercel y vuelve a desplegar."
+      );
+      return;
+    }
+
+    let map: mapboxgl.Map;
+    try {
+      mapboxgl.accessToken = MAPBOX_TOKEN;
+      map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [-66.1568, -17.3895],
+        zoom: 12,
+      });
+    } catch (err) {
+      setUserLocationError(
+        err instanceof Error
+          ? err.message
+          : "No se pudo inicializar el mapa. Revisa el token de Mapbox en Vercel."
+      );
+      return;
+    }
 
     mapRef.current = map;
 
@@ -736,6 +753,21 @@ export default function ContainersMap({
       observer.disconnect();
     };
   }, [layoutRevision, pickOnMap]);
+
+  if (!MAPBOX_TOKEN.trim()) {
+    return (
+      <div className="flex h-full min-h-[440px] w-full flex-col items-center justify-center rounded-xl border border-amber-200 bg-amber-50 p-6 text-center">
+        <p className="text-sm font-semibold text-amber-900">Mapa no disponible</p>
+        <p className="mt-2 max-w-md text-sm text-amber-800">
+          Falta configurar <code className="font-mono">NEXT_PUBLIC_MAPBOX_TOKEN</code> en las
+          variables de entorno de Vercel.
+        </p>
+        <p className="mt-2 text-xs text-amber-700">
+          Despues de guardarla, Vercel pedira redesplegar el proyecto.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div

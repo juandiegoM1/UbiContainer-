@@ -109,12 +109,23 @@ async function fetchNextContainerId(): Promise<number> {
   return (typeof maxId === "number" ? maxId : 0) + 1;
 }
 
-function normalizeContainerRow(row: Record<string, unknown>): ContainerRow {
+function normalizeContainerRow(row: Record<string, unknown>): ContainerRow | null {
+  const latitude = Number(row.latitude);
+  const longitude = Number(row.longitude);
+  const id = Number(row.id);
+  if (
+    !Number.isFinite(id) ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude)
+  ) {
+    return null;
+  }
+
   return {
-    id: row.id as number,
+    id,
     tipo: row.tipo as ContainerTipo,
-    latitude: row.latitude as number,
-    longitude: row.longitude as number,
+    latitude,
+    longitude,
     nombre: (row.nombre as string | null) ?? null,
     cantidad: (row.cantidad as number | null) ?? null,
     estado: (row.estado as string | null) ?? null,
@@ -137,9 +148,11 @@ async function fetchWithSelect(select: string): Promise<ContainerRow[]> {
 
     if (error) throw new Error(error.message);
 
-    const batch = (data ?? []).map((row) =>
-      normalizeContainerRow(row as unknown as Record<string, unknown>)
-    );
+    const batch = (data ?? [])
+      .map((row) =>
+        normalizeContainerRow(row as unknown as Record<string, unknown>)
+      )
+      .filter((row): row is ContainerRow => row != null);
     allRows.push(...batch);
 
     if (batch.length < pageSize) break;
@@ -212,7 +225,9 @@ export async function createContainer(
       .single();
 
     if (!error && data) {
-      return normalizeContainerRow(data as unknown as Record<string, unknown>);
+      const row = normalizeContainerRow(data as unknown as Record<string, unknown>);
+      if (!row) throw new Error("El contenedor devuelto no tiene coordenadas validas.");
+      return row;
     }
 
     if (!error) continue;
@@ -268,7 +283,9 @@ export async function updateContainer(
       .single();
 
     if (!error && data) {
-      return normalizeContainerRow(data as unknown as Record<string, unknown>);
+      const row = normalizeContainerRow(data as unknown as Record<string, unknown>);
+      if (!row) throw new Error("El contenedor devuelto no tiene coordenadas validas.");
+      return row;
     }
 
     if (!error) continue;
