@@ -756,9 +756,9 @@ export default function MapaPage() {
           </div>
         ) : null}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
           <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white rounded-2xl shadow-sm p-4 flex flex-col h-[560px] min-h-[480px] overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm p-3 sm:p-4 flex flex-col h-[min(420px,62vh)] sm:h-[480px] lg:h-[560px] min-h-[320px] overflow-hidden">
               <div className="flex-1 min-h-0">
                 <ContainersMap
                   containers={containers}
@@ -853,7 +853,7 @@ export default function MapaPage() {
 
           <div
             ref={rightPanelRef}
-            className="space-y-4 max-h-[560px] overflow-y-auto lg:sticky lg:top-6"
+            className="space-y-4 max-h-none lg:max-h-[560px] overflow-y-auto lg:sticky lg:top-6"
           >
             {selectedContainerPanel}
             {formPanel}

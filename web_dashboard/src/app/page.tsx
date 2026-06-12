@@ -37,8 +37,8 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2D6A4F] to-[#1a4a35] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-5xl grid lg:grid-cols-2">
-        <div className="bg-[#f4f8f6] p-8 lg:p-10 flex flex-col justify-between">
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden w-full max-w-5xl grid lg:grid-cols-2">
+        <div className="hidden lg:flex bg-[#f4f8f6] p-8 lg:p-10 flex-col justify-between">
           <div>
             <span className="text-xs font-bold tracking-[0.25em] text-[#2D6A4F] uppercase">Sistema web</span>
             <h2 className="text-3xl font-bold text-gray-800 mt-4">Gestion inteligente de contenedores urbanos</h2>
@@ -66,7 +66,7 @@ export default function Login() {
           </div>
         </div>
 
-        <div className="p-8 lg:p-10">
+        <div className="p-6 sm:p-8 lg:p-10">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-br from-[#2D6A4F] to-[#6B4F2A] rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

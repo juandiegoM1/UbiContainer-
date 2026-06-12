@@ -245,7 +245,7 @@ export default function DashboardPage() {
                 ultimosReportes.map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2 border-b border-gray-100 last:border-0"
                   >
                     <div>
                       <p className="text-sm font-medium text-gray-800">Vertedero reportado</p>

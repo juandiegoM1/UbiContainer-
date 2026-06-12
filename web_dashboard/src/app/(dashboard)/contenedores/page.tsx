@@ -88,7 +88,7 @@ export default function ContenedoresPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por #ID, nombre o tipo..."
-            className="px-4 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#2D6A4F]"
+            className="w-full sm:w-auto min-w-0 flex-1 px-4 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#2D6A4F]"
           />
           {tipos.map((t) => (
             <button
@@ -117,8 +117,42 @@ export default function ContenedoresPage() {
             onAction={limpiarFiltros}
           />
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <table className="w-full text-left">
+          <>
+          <div className="md:hidden space-y-3">
+            {filtrados.map((c) => (
+              <div
+                key={c.id}
+                className={`rounded-2xl border bg-white p-4 shadow-sm ${
+                  isCapacityAlert(c) ? "border-orange-200 bg-orange-50/40" : "border-gray-200"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="font-semibold text-gray-800">#{c.id}</span>
+                  <span
+                    className="text-xs px-2 py-1 rounded-full font-medium text-white"
+                    style={{ backgroundColor: containerColor(c.tipo) }}
+                  >
+                    {containerLabel(c.tipo)}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500">
+                  {c.latitude.toFixed(5)}, {c.longitude.toFixed(5)}
+                </p>
+                {c.nombre ? (
+                  <p className="text-sm text-gray-600 mt-1">{c.nombre}</p>
+                ) : null}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <CapacityBadge container={c} />
+                  <span className="text-xs text-gray-500 capitalize">
+                    {c.estado ?? "activo"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left">
               <thead className="bg-gray-50 text-gray-500 text-sm">
                 <tr>
                   <th className="px-6 py-3 font-medium">ID</th>
@@ -161,6 +195,7 @@ export default function ContenedoresPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </DataState>
     </>

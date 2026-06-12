@@ -173,8 +173,67 @@ export default function ReportesPage() {
             onAction={() => setFiltro("Todos")}
           />
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <table className="w-full text-left">
+          <>
+          <div className="md:hidden space-y-3">
+            {filtrados.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-800">Vertedero Ilegal</p>
+                    <a
+                      href={`https://www.google.com/maps?q=${r.latitude},${r.longitude}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-[#2D6A4F] hover:underline break-all"
+                    >
+                      {formatUbicacion(r.latitude, r.longitude)}
+                    </a>
+                    {r.description ? (
+                      <p className="text-xs text-gray-400 mt-1 line-clamp-3">{r.description}</p>
+                    ) : null}
+                    <p className="text-xs text-gray-400 mt-2">
+                      {formatRelativeTime(r.created_at)}
+                    </p>
+                  </div>
+                  {r.photo_url ? (
+                    <button type="button" onClick={() => setSelectedPhoto(r.photo_url ?? null)}>
+                      <img
+                        src={r.photo_url}
+                        alt="Foto del vertedero"
+                        className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                      />
+                    </button>
+                  ) : null}
+                </div>
+                <div className="mt-3">
+                  <select
+                    value={r.estado}
+                    disabled={updatingId === String(r.id)}
+                    onChange={(e) =>
+                      handleEstadoChange(r.id, e.target.value as DumpReportRow["estado"])
+                    }
+                    className={`w-full text-sm px-3 py-2 rounded-lg font-medium border cursor-pointer ${
+                      r.estado === "pendiente"
+                        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                        : r.estado === "en_proceso"
+                          ? "bg-blue-100 text-blue-700 border-blue-200"
+                          : "bg-green-100 text-green-700 border-green-200"
+                    }`}
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_proceso">En Proceso</option>
+                    <option value="atendido">Atendido</option>
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left">
               <thead className="bg-gray-50 text-gray-500 text-sm">
                 <tr>
                   <th className="px-6 py-3 font-medium">Tipo</th>
@@ -261,6 +320,7 @@ export default function ReportesPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8">
