@@ -52,8 +52,8 @@ const allNavItems: NavItem[] = [
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(true);
   const [session, setSession] = useState<AuthSession | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -113,7 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = allNavItems.filter((item) => canAccessPath(session.role, item.path));
 
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
+    <div className="h-screen flex overflow-hidden bg-gray-100 dark:bg-gray-900">
       {!isDesktop && sidebarOpen ? (
         <button
           type="button"
@@ -124,11 +124,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ) : null}
 
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-screen flex flex-col flex-shrink-0 overflow-hidden bg-gradient-to-b from-[#2D6A4F] to-[#1a4a35] text-white transition-all duration-300 w-64 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 ${isDesktop && !sidebarOpen ? "lg:w-20" : "lg:w-64"}`}
+        className={`${
+          sidebarOpen ? "w-64" : "w-20"
+        } h-screen sticky top-0 self-start flex flex-col flex-shrink-0 overflow-hidden bg-gradient-to-b from-[#2D6A4F] to-[#1a4a35] text-white transition-all duration-300 max-lg:fixed max-lg:left-0 max-lg:z-50 ${
+          sidebarOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
+        }`}
       >
-        <div className="p-4 sm:p-5 flex items-center gap-3 border-b border-white/10">
+        <div className="p-4 sm:p-5 flex items-center gap-3 border-b border-white/10 flex-shrink-0">
           <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -189,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 w-full">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <header className="bg-white dark:bg-gray-800 shadow-sm px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between flex-shrink-0">
           <button
             onClick={() => setSidebarOpen((open) => !open)}
@@ -213,7 +215,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 overflow-auto">{children}</main>
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );
