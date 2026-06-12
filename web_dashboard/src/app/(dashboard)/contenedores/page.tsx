@@ -2,66 +2,56 @@
 
 import { useMemo, useState } from "react";
 import { DataState, EmptyState, PageHeader } from "@/components/ui";
-import { useMockDataLoad } from "@/hooks/useMockDataLoad";
+import { useContainers } from "@/hooks/useContainers";
+import { matchesContainerSearch } from "@/lib/containerSearch";
+import { CapacityBadge } from "@/components/containers/CapacityBadge";
+import {
+  getCapacityAlerts,
+  isCapacityAlert,
+} from "@/lib/containerCapacity";
+import {
+  ContainerRow,
+  containerColor,
+  containerLabel,
+} from "@/lib/containers";
 
-type EstadoContenedor = "OK" | "Lleno" | "Mantenimiento";
-type TipoContenedor = "Naranja" | "Verde" | "Soterrado";
+const tipos = ["Todos", "Verde", "Naranja", "Soterrado"] as const;
 
-type Contenedor = {
-  id: string;
-  tipo: TipoContenedor;
-  zona: string;
-  estado: EstadoContenedor;
-  capacidad: number;
-  ultimaActualizacion: string;
-  responsable: string;
-};
-
-const contenedoresMock: Contenedor[] = [
-  { id: "N-001", tipo: "Naranja", zona: "Zona Norte", estado: "Lleno", capacidad: 92, ultimaActualizacion: "Hace 2h", responsable: "Ruta Norte" },
-  { id: "V-042", tipo: "Verde", zona: "Zona Sur", estado: "OK", capacidad: 38, ultimaActualizacion: "Hace 5h", responsable: "Ruta Sur" },
-  { id: "S-012", tipo: "Soterrado", zona: "Zona Este", estado: "Mantenimiento", capacidad: 64, ultimaActualizacion: "Hace 1d", responsable: "Equipo Tecnico" },
-  { id: "N-103", tipo: "Naranja", zona: "Zona Oeste", estado: "Lleno", capacidad: 88, ultimaActualizacion: "Hace 3h", responsable: "Ruta Oeste" },
-  { id: "V-089", tipo: "Verde", zona: "Zona Centro", estado: "OK", capacidad: 41, ultimaActualizacion: "Hace 8h", responsable: "Ruta Centro" },
-  { id: "S-005", tipo: "Soterrado", zona: "Zona Norte", estado: "OK", capacidad: 52, ultimaActualizacion: "Hace 6h", responsable: "Ruta Norte" },
-  { id: "N-118", tipo: "Naranja", zona: "Zona Sudeste", estado: "OK", capacidad: 47, ultimaActualizacion: "Hace 4h", responsable: "Ruta Sudeste" },
-  { id: "V-074", tipo: "Verde", zona: "Zona Central", estado: "Mantenimiento", capacidad: 71, ultimaActualizacion: "Hace 12h", responsable: "Equipo Tecnico" },
-];
-
-const tipos = ["Todos", "Naranja", "Verde", "Soterrado"];
-const estados = ["Todos", "OK", "Lleno", "Mantenimiento"];
+function matchesTipo(container: ContainerRow, tipo: string) {
+  if (tipo === "Todos") return true;
+  return containerLabel(container.tipo) === tipo;
+}
 
 export default function ContenedoresPage() {
-  const { loading, error, data: contenedores, reload } = useMockDataLoad(contenedoresMock);
+  const { loading, error, containers, reload } = useContainers();
   const [busqueda, setBusqueda] = useState("");
-  const [tipo, setTipo] = useState("Todos");
-  const [estado, setEstado] = useState("Todos");
+  const [tipo, setTipo] = useState<(typeof tipos)[number]>("Todos");
+
+  const counts = useMemo(() => {
+    const verde = containers.filter((c) => c.tipo === "verde").length;
+    const naranja = containers.filter((c) => c.tipo === "naranja").length;
+    const soterrado = containers.filter((c) => c.tipo === "soterrado").length;
+    return { total: containers.length, verde, naranja, soterrado };
+  }, [containers]);
+
+  const alertas = useMemo(() => getCapacityAlerts(containers), [containers]);
 
   const filtrados = useMemo(() => {
-    if (!contenedores) return [];
-    return contenedores.filter((c) => {
-      const coincideTexto = `${c.id} ${c.zona} ${c.responsable}`.toLowerCase().includes(busqueda.toLowerCase());
-      const coincideTipo = tipo === "Todos" || c.tipo === tipo;
-      const coincideEstado = estado === "Todos" || c.estado === estado;
-      return coincideTexto && coincideTipo && coincideEstado;
+    return containers.filter((c) => {
+      return matchesTipo(c, tipo) && matchesContainerSearch(c, busqueda);
     });
-  }, [contenedores, busqueda, tipo, estado]);
-
-  const llenos = contenedores?.filter((c) => c.estado === "Lleno").length ?? 0;
-  const mantenimiento = contenedores?.filter((c) => c.estado === "Mantenimiento").length ?? 0;
-  const operativos = contenedores?.filter((c) => c.estado === "OK").length ?? 0;
+  }, [containers, busqueda, tipo]);
 
   const limpiarFiltros = () => {
     setBusqueda("");
     setTipo("Todos");
-    setEstado("Todos");
   };
 
   return (
     <>
       <PageHeader
         title="Contenedores"
-        description="Gestion y monitoreo de contenedores urbanos"
+        description="Consulta el listado de contenedores registrados"
       />
       <DataState
         loading={loading}
@@ -69,18 +59,26 @@ export default function ContenedoresPage() {
         onRetry={reload}
         loadingMessage="Cargando contenedores..."
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-[#2D6A4F]">
+            <p className="text-3xl font-bold text-gray-800">{counts.total}</p>
+            <p className="text-sm text-gray-500 mt-1">Total</p>
+          </div>
           <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-500">
-            <p className="text-3xl font-bold text-gray-800">{operativos}</p>
-            <p className="text-sm text-gray-500 mt-1">Operativos</p>
+            <p className="text-3xl font-bold text-gray-800">{counts.verde}</p>
+            <p className="text-sm text-gray-500 mt-1">Verdes</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-orange-500">
+            <p className="text-3xl font-bold text-gray-800">{counts.naranja}</p>
+            <p className="text-sm text-gray-500 mt-1">Naranjas</p>
           </div>
           <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-red-500">
-            <p className="text-3xl font-bold text-gray-800">{llenos}</p>
-            <p className="text-sm text-gray-500 mt-1">Llenos</p>
+            <p className="text-3xl font-bold text-gray-800">{counts.soterrado}</p>
+            <p className="text-sm text-gray-500 mt-1">Soterrados</p>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-yellow-500">
-            <p className="text-3xl font-bold text-gray-800">{mantenimiento}</p>
-            <p className="text-sm text-gray-500 mt-1">Mantenimiento</p>
+          <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-orange-500">
+            <p className="text-3xl font-bold text-gray-800">{alertas.length}</p>
+            <p className="text-sm text-gray-500 mt-1">En alerta</p>
           </div>
         </div>
 
@@ -89,27 +87,20 @@ export default function ContenedoresPage() {
             type="text"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar contenedor..."
+            placeholder="Buscar por #ID, nombre o tipo..."
             className="px-4 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-[#2D6A4F]"
           />
           {tipos.map((t) => (
             <button
               key={t}
               onClick={() => setTipo(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${tipo === t ? "bg-[#2D6A4F] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                tipo === t
+                  ? "bg-[#2D6A4F] text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+              }`}
             >
               {t}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2 mb-4">
-          {estados.map((e) => (
-            <button
-              key={e}
-              onClick={() => setEstado(e)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${estado === e ? "bg-[#2D6A4F] text-white" : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"}`}
-            >
-              {e}
             </button>
           ))}
         </div>
@@ -117,7 +108,11 @@ export default function ContenedoresPage() {
         {filtrados.length === 0 ? (
           <EmptyState
             title="Ningun contenedor encontrado"
-            message="No hay resultados con los filtros actuales. Prueba otra busqueda o limpia los filtros."
+            message={
+              containers.length === 0
+                ? "No hay contenedores en la base de datos o faltan permisos de lectura en Supabase."
+                : "No hay resultados con los filtros actuales. Prueba otra busqueda o limpia los filtros."
+            }
             actionLabel="Limpiar filtros"
             onAction={limpiarFiltros}
           />
@@ -128,33 +123,39 @@ export default function ContenedoresPage() {
                 <tr>
                   <th className="px-6 py-3 font-medium">ID</th>
                   <th className="px-6 py-3 font-medium">Tipo</th>
-                  <th className="px-6 py-3 font-medium">Zona</th>
-                  <th className="px-6 py-3 font-medium">Estado</th>
+                  <th className="px-6 py-3 font-medium">Latitud</th>
+                  <th className="px-6 py-3 font-medium">Longitud</th>
+                  <th className="px-6 py-3 font-medium">Nombre</th>
                   <th className="px-6 py-3 font-medium">Capacidad</th>
-                  <th className="px-6 py-3 font-medium">Responsable</th>
+                  <th className="px-6 py-3 font-medium">Estado operativo</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filtrados.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{c.id}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{c.tipo}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{c.zona}</td>
+                  <tr
+                    key={c.id}
+                    className={`transition ${
+                      isCapacityAlert(c) ? "bg-orange-50/60 hover:bg-orange-50" : "hover:bg-gray-50"
+                    }`}
+                  >
+                    <td className="px-6 py-4 text-sm font-medium text-gray-800">#{c.id}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          c.estado === "Lleno"
-                            ? "bg-red-100 text-red-700"
-                            : c.estado === "Mantenimiento"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                        }`}
+                        className="text-xs px-2 py-1 rounded-full font-medium text-white"
+                        style={{ backgroundColor: containerColor(c.tipo) }}
                       >
-                        {c.estado}
+                        {containerLabel(c.tipo)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{c.capacidad}%</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{c.responsable}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{c.latitude.toFixed(5)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{c.longitude.toFixed(5)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{c.nombre ?? "—"}</td>
+                    <td className="px-6 py-4">
+                      <CapacityBadge container={c} />
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 capitalize">
+                      {c.estado ?? "activo"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

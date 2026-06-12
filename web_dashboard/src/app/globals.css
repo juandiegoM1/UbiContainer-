@@ -6,3 +6,10 @@ body {
   margin: 0;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
+
+.mapboxgl-map,
+.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+

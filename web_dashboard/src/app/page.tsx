@@ -21,7 +21,7 @@ export default function Login() {
 
     const credential = findCredential(email, password);
     if (!credential) {
-      setError("Credenciales incorrectas. Usa una cuenta demo de la izquierda.");
+      setError("Credenciales incorrectas.");
       return;
     }
 
@@ -42,9 +42,6 @@ export default function Login() {
           <div>
             <span className="text-xs font-bold tracking-[0.25em] text-[#2D6A4F] uppercase">Sistema web</span>
             <h2 className="text-3xl font-bold text-gray-800 mt-4">Gestion inteligente de contenedores urbanos</h2>
-            <p className="text-gray-500 mt-4 leading-relaxed">
-              Ingresa con una cuenta demo para revisar el dashboard segun tu rol: administrador, gerente u operador.
-            </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-1 gap-4 mt-8">
             {demoCredentials.map((credential) => (
@@ -79,12 +76,6 @@ export default function Login() {
             </div>
             <h1 className="text-2xl font-bold text-gray-800">UbiContainer</h1>
             <p className="text-gray-500 mt-2">Panel de Administracion</p>
-          </div>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
-            <p className="text-sm font-semibold text-yellow-800">Acceso demo disponible</p>
-            <p className="text-xs text-yellow-700 mt-1">
-              Puedes usar cualquier tarjeta de la izquierda para rellenar el formulario automaticamente.
-            </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (

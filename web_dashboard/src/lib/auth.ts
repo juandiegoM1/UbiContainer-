@@ -1,4 +1,4 @@
-export type UserRole = "administrador" | "operador" | "gerente";
+export type UserRole = "administrador";
 
 export type DemoCredential = {
   role: UserRole;
@@ -29,30 +29,17 @@ export const demoCredentials: DemoCredential[] = [
     accent: "border-[#2D6A4F] bg-[#2D6A4F]/5",
     initials: "AD",
   },
-  {
-    role: "gerente",
-    roleLabel: "Gerente",
-    email: "gerente@ubicontainer.com",
-    password: "123456",
-    description: "Supervision de indicadores y reportes",
-    accent: "border-[#1e4d7b] bg-[#1e4d7b]/5",
-    initials: "GE",
-  },
-  {
-    role: "operador",
-    roleLabel: "Operador",
-    email: "operador@ubicontainer.com",
-    password: "123456",
-    description: "Revision de rutas y contenedores",
-    accent: "border-[#6B4F2A] bg-[#6B4F2A]/5",
-    initials: "OP",
-  },
 ];
 
 const rolePermissions: Record<UserRole, string[]> = {
-  administrador: ["/dashboard", "/contenedores", "/mapa", "/reportes", "/configuracion"],
-  gerente: ["/dashboard", "/mapa", "/reportes"],
-  operador: ["/dashboard", "/contenedores", "/mapa", "/reportes"],
+  administrador: [
+    "/dashboard",
+    "/contenedores",
+    "/mapa",
+    "/reportes",
+    "/alertas",
+    "/configuracion",
+  ],
 };
 
 export function getAllowedPaths(role: UserRole): string[] {
@@ -91,7 +78,12 @@ export function getSession(): AuthSession | null {
   const raw = sessionStorage.getItem(SESSION_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as AuthSession;
+    const session = JSON.parse(raw) as AuthSession;
+    if (session.role !== "administrador") {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return session;
   } catch {
     return null;
   }
