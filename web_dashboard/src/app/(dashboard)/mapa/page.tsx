@@ -81,6 +81,7 @@ export default function MapaPage() {
     reload: reloadReports,
   } = useDumpReports();
   const rightPanelRef = useRef<HTMLDivElement>(null);
+  const formPanelRef = useRef<HTMLDivElement>(null);
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -167,8 +168,24 @@ export default function MapaPage() {
 
   function openFormPanel() {
     requestAnimationFrame(() => {
+      const isMobile = window.matchMedia("(max-width: 1023px)").matches;
+      if (isMobile) {
+        formPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
       rightPanelRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     });
+  }
+
+  const nuevoContenedorButtonClass =
+    "min-h-[44px] px-4 py-2.5 bg-[#2D6A4F] hover:bg-[#1a4a35] active:bg-[#1a4a35] text-white rounded-lg text-sm font-medium transition touch-manipulation";
+
+  function renderNuevoContenedorButton(className = nuevoContenedorButtonClass) {
+    return (
+      <button type="button" onClick={startCreate} className={className}>
+        + Nuevo contenedor
+      </button>
+    );
   }
 
   function startCreate() {
@@ -451,7 +468,8 @@ export default function MapaPage() {
     ) : null;
 
   const formPanel = (mode === "edit" || mode === "create") && (
-    <div className="bg-white rounded-2xl shadow-sm p-4 border-2 border-[#2D6A4F]/40">
+    <div ref={formPanelRef} className="scroll-mt-24 lg:scroll-mt-6">
+      <div className="bg-white rounded-2xl shadow-sm p-4 border-2 border-[#2D6A4F]/40">
       <h2 className="text-lg font-semibold text-gray-800 mb-1">
         {mode === "create"
           ? "Registrar nuevo contenedor"
@@ -606,6 +624,7 @@ export default function MapaPage() {
           </button>
         </div>
       </div>
+      </div>
     </div>
   );
 
@@ -614,15 +633,7 @@ export default function MapaPage() {
       <PageHeader
         title="Mapa de Contenedores"
         description="Contenedores y mapa de calor de vertederos ilegales para que EMSA identifique zonas criticas y priorice incidentes"
-        action={
-          <button
-            type="button"
-            onClick={startCreate}
-            className="px-4 py-2 bg-[#2D6A4F] hover:bg-[#1a4a35] text-white rounded-lg text-sm font-medium transition"
-          >
-            + Nuevo contenedor
-          </button>
-        }
+        action={renderNuevoContenedorButton("w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-[#2D6A4F] hover:bg-[#1a4a35] active:bg-[#1a4a35] text-white rounded-lg text-sm font-medium transition touch-manipulation")}
       />
 
       <DataState
@@ -631,6 +642,19 @@ export default function MapaPage() {
         onRetry={reload}
         loadingMessage="Cargando contenedores..."
       >
+        <div className="lg:hidden sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-4 bg-gray-100/95 backdrop-blur border-b border-gray-200 flex gap-2">
+          {renderNuevoContenedorButton("flex-1")}
+          {mode !== "view" ? (
+            <button
+              type="button"
+              onClick={cancelForm}
+              className="min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white touch-manipulation"
+            >
+              Cancelar
+            </button>
+          ) : null}
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
           <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#2D6A4F]">
             <p className="text-2xl font-bold text-gray-800">
@@ -757,7 +781,11 @@ export default function MapaPage() {
         ) : null}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5 items-start">
-          <div className="lg:col-span-2 space-y-4">
+          <div
+            className={`lg:col-span-2 space-y-4 ${
+              mode === "create" || mode === "edit" ? "order-2 lg:order-1" : ""
+            }`}
+          >
             <div className="bg-white rounded-2xl shadow-sm p-3 sm:p-4 flex flex-col h-[min(420px,62vh)] sm:h-[480px] lg:h-[560px] min-h-[320px] overflow-hidden">
               <div className="flex-1 min-h-0">
                 <ContainersMap
@@ -853,7 +881,9 @@ export default function MapaPage() {
 
           <div
             ref={rightPanelRef}
-            className="space-y-4 max-h-none lg:max-h-[560px] overflow-y-auto lg:sticky lg:top-6"
+            className={`space-y-4 max-h-none lg:max-h-[560px] overflow-y-auto lg:sticky lg:top-6 ${
+              mode === "create" || mode === "edit" ? "order-1 lg:order-2" : ""
+            }`}
           >
             {selectedContainerPanel}
             {formPanel}
