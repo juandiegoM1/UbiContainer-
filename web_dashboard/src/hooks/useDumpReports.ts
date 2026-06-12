@@ -86,7 +86,7 @@ export function useDumpReports() {
         },
         async (payload) => {
           const record = normalizeReport(
-            (payload.new ?? {}) as Record<string, unknown>
+            (payload.new ?? {}) as unknown as Record<string, unknown>
           );
           if (!record) return;
 
@@ -108,7 +108,7 @@ export function useDumpReports() {
         },
         (payload) => {
           const record = normalizeReport(
-            (payload.new ?? {}) as Record<string, unknown>
+            (payload.new ?? {}) as unknown as Record<string, unknown>
           );
           if (!record) return;
 

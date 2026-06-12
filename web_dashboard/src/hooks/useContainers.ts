@@ -120,8 +120,8 @@ export function useContainers() {
           setContainers((current) =>
             applyRealtimeChange(current, {
               eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
-              new: (payload.new ?? {}) as Record<string, unknown>,
-              old: (payload.old ?? {}) as Record<string, unknown>,
+              new: (payload.new ?? {}) as unknown as Record<string, unknown>,
+              old: (payload.old ?? {}) as unknown as Record<string, unknown>,
             })
           );
         }

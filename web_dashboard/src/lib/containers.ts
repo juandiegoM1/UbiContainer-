@@ -138,7 +138,7 @@ async function fetchWithSelect(select: string): Promise<ContainerRow[]> {
     if (error) throw new Error(error.message);
 
     const batch = (data ?? []).map((row) =>
-      normalizeContainerRow(row as Record<string, unknown>)
+      normalizeContainerRow(row as unknown as Record<string, unknown>)
     );
     allRows.push(...batch);
 
@@ -212,7 +212,7 @@ export async function createContainer(
       .single();
 
     if (!error && data) {
-      return normalizeContainerRow(data as Record<string, unknown>);
+      return normalizeContainerRow(data as unknown as Record<string, unknown>);
     }
 
     if (!error) continue;
@@ -268,7 +268,7 @@ export async function updateContainer(
       .single();
 
     if (!error && data) {
-      return normalizeContainerRow(data as Record<string, unknown>);
+      return normalizeContainerRow(data as unknown as Record<string, unknown>);
     }
 
     if (!error) continue;
