@@ -202,35 +202,27 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-[#2D6A4F] to-[#1a4a35] rounded-2xl shadow-sm p-6 text-white">
-            <p className="text-sm text-white/70">Resumen del turno</p>
-            <h2 className="text-2xl font-bold mt-1">Operacion diaria</h2>
-            <div className="grid grid-cols-2 gap-3 mt-6">
-              <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-2xl font-bold">{rutasRecoleccion.length}</p>
-                <p className="text-xs text-white/70">Rutas</p>
+          <div className="bg-gradient-to-br from-[#2D6A4F] to-[#1a4a35] rounded-2xl shadow-sm p-4 text-white self-start w-full max-w-xs xl:max-w-none">
+            <p className="text-xs text-white/70">Resumen del turno</p>
+            <h2 className="text-lg font-bold mt-1">Operacion diaria</h2>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              <div className="bg-white/10 rounded-lg p-3">
+                <p className="text-xl font-bold">{rutasRecoleccion.length}</p>
+                <p className="text-[11px] text-white/70">Rutas</p>
               </div>
-              <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-2xl font-bold">{counts.total}</p>
-                <p className="text-xs text-white/70">Contenedores</p>
+              <div className="bg-white/10 rounded-lg p-3">
+                <p className="text-xl font-bold">{counts.total}</p>
+                <p className="text-[11px] text-white/70">Contenedores</p>
               </div>
             </div>
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-between text-sm">
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between text-xs">
                 <span className="text-white/70">Sensores activos</span>
                 <span className="font-semibold">{SENSORES_ACTIVOS}</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs">
                 <span className="text-white/70">Reportes pendientes</span>
                 <span className="font-semibold">{reportesPendientes}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/70">Soterrados</span>
-                <span className="font-semibold">{counts.soterrado}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-white/70">Estado general</span>
-                <span className="font-semibold">En progreso</span>
               </div>
             </div>
           </div>
