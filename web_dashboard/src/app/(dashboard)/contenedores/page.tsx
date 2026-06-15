@@ -23,16 +23,11 @@ function matchesTipo(container: ContainerRow, tipo: string) {
 }
 
 export default function ContenedoresPage() {
-  const { loading, error, containers, reload } = useContainers();
+  const { loading, error, containers, stats, reload } = useContainers();
   const [busqueda, setBusqueda] = useState("");
   const [tipo, setTipo] = useState<(typeof tipos)[number]>("Todos");
 
-  const counts = useMemo(() => {
-    const verde = containers.filter((c) => c.tipo === "verde").length;
-    const naranja = containers.filter((c) => c.tipo === "naranja").length;
-    const soterrado = containers.filter((c) => c.tipo === "soterrado").length;
-    return { total: containers.length, verde, naranja, soterrado };
-  }, [containers]);
+  const counts = stats;
 
   const alertas = useMemo(() => getCapacityAlerts(containers), [containers]);
 

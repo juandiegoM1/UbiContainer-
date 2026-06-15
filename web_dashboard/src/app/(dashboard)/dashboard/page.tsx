@@ -30,7 +30,7 @@ export default function DashboardPage() {
     loading: loadingContainers,
     error: containersError,
     containers,
-    dbTotal,
+    stats: containerStats,
     reload: reloadContainers,
   } = useContainers();
   const {
@@ -43,17 +43,7 @@ export default function DashboardPage() {
   const loading = loadingContainers || loadingReports;
   const error = containersError ?? reportsError;
 
-  const counts = useMemo(() => {
-    const verde = containers.filter((c) => c.tipo === "verde").length;
-    const naranja = containers.filter((c) => c.tipo === "naranja").length;
-    const soterrado = containers.filter((c) => c.tipo === "soterrado").length;
-    return {
-      total: dbTotal ?? containers.length,
-      verde,
-      naranja,
-      soterrado,
-    };
-  }, [containers, dbTotal]);
+  const counts = useMemo(() => containerStats, [containerStats]);
 
   const reportesHoy = useMemo(
     () => reports.filter((r) => isToday(r.created_at)).length,
@@ -240,7 +230,7 @@ export default function DashboardPage() {
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-2 border-b border-gray-100 last:border-0"
                   >
                     <div>
-                      <p className="text-sm font-medium text-gray-800">Vertedero reportado</p>
+                      <p className="text-sm font-medium text-gray-800">Vertedero ilegal reportado</p>
                       <p className="text-xs text-gray-400">
                         {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)} &bull;{" "}
                         {new Date(r.created_at).toLocaleString("es-BO")}

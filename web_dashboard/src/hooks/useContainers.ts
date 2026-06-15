@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ContainerRow,
+  ContainerStats,
   ContainerTipo,
+  fetchContainerStats,
   fetchContainers,
-  fetchContainersCount,
+  normalizeContainerTipo,
 } from "@/lib/containers";
 import { supabase } from "@/lib/supabase";
 
@@ -23,7 +25,7 @@ function normalizeRealtimeRow(record: Record<string, unknown>): ContainerRow | n
 
   return {
     id,
-    tipo: (record.tipo as ContainerTipo) ?? "naranja",
+    tipo: normalizeContainerTipo(record.tipo) ?? "naranja",
     latitude,
     longitude,
     nombre: (record.nombre as string | null) ?? null,
@@ -66,11 +68,56 @@ function applyRealtimeChange(
   return current;
 }
 
+function applyRealtimeStats(
+  current: ContainerStats,
+  payload: {
+    eventType: "INSERT" | "UPDATE" | "DELETE";
+    new: Record<string, unknown>;
+    old: Record<string, unknown>;
+  }
+): ContainerStats {
+  const next = { ...current };
+
+  if (payload.eventType === "INSERT") {
+    const tipo = normalizeContainerTipo(payload.new.tipo);
+    if (!tipo) return current;
+    next.total += 1;
+    next.units += 1;
+    next[tipo] += 1;
+    return next;
+  }
+
+  if (payload.eventType === "DELETE") {
+    const tipo = normalizeContainerTipo(payload.old.tipo);
+    if (!tipo) return current;
+    next.total = Math.max(0, next.total - 1);
+    next.units = Math.max(0, next.units - 1);
+    next[tipo] = Math.max(0, next[tipo] - 1);
+    return next;
+  }
+
+  if (payload.eventType === "UPDATE") {
+    const previousTipo = normalizeContainerTipo(payload.old.tipo);
+    const nextTipo = normalizeContainerTipo(payload.new.tipo);
+    if (!previousTipo || !nextTipo || previousTipo === nextTipo) return current;
+    next[previousTipo] = Math.max(0, next[previousTipo] - 1);
+    next[nextTipo] += 1;
+  }
+
+  return next;
+}
+
 export function useContainers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [containers, setContainers] = useState<ContainerRow[]>([]);
-  const [dbTotal, setDbTotal] = useState<number | null>(null);
+  const [stats, setStats] = useState<ContainerStats>({
+    total: 0,
+    verde: 0,
+    naranja: 0,
+    soterrado: 0,
+    units: 0,
+  });
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = useCallback(() => {
@@ -85,13 +132,13 @@ export function useContainers() {
       setError(null);
 
       try {
-        const [data, total] = await Promise.all([
+        const [data, serverStats] = await Promise.all([
           fetchContainers(),
-          fetchContainersCount(),
+          fetchContainerStats(),
         ]);
         if (!cancelled) {
           setContainers(data);
-          setDbTotal(total);
+          setStats(serverStats);
         }
       } catch (err) {
         if (!cancelled) {
@@ -124,6 +171,13 @@ export function useContainers() {
               old: (payload.old ?? {}) as unknown as Record<string, unknown>,
             })
           );
+          setStats((current) =>
+            applyRealtimeStats(current, {
+              eventType: payload.eventType as "INSERT" | "UPDATE" | "DELETE",
+              new: (payload.new ?? {}) as unknown as Record<string, unknown>,
+              old: (payload.old ?? {}) as unknown as Record<string, unknown>,
+            })
+          );
         }
       )
       .subscribe();
@@ -134,5 +188,5 @@ export function useContainers() {
     };
   }, [reloadKey]);
 
-  return { loading, error, containers, dbTotal, reload, setContainers };
+  return { loading, error, containers, stats, reload, setContainers };
 }

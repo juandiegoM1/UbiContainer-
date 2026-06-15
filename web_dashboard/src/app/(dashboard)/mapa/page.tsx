@@ -73,7 +73,7 @@ function isValidCoordinate(latitude: number, longitude: number) {
 }
 
 export default function MapaPage() {
-  const { loading, error, containers, dbTotal, reload, setContainers } =
+  const { loading, error, containers, stats, reload, setContainers } =
     useContainers();
   const {
     error: reportsError,
@@ -107,12 +107,7 @@ export default function MapaPage() {
     reload();
   }, [reload]);
 
-  const counts = useMemo(() => {
-    const verde = containers.filter((c) => c.tipo === "verde").length;
-    const naranja = containers.filter((c) => c.tipo === "naranja").length;
-    const soterrado = containers.filter((c) => c.tipo === "soterrado").length;
-    return { total: containers.length, verde, naranja, soterrado };
-  }, [containers]);
+  const counts = stats;
 
   useEffect(() => {
     setMyRegistryVersion((value) => value + 1);
@@ -642,7 +637,7 @@ export default function MapaPage() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
           <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#2D6A4F]">
             <p className="text-2xl font-bold text-gray-800">
-              {dbTotal ?? counts.total}
+              {counts.total}
             </p>
             <p className="text-sm text-gray-500">Total contenedores</p>
           </div>
@@ -874,7 +869,7 @@ export default function MapaPage() {
 
             <div className="bg-white rounded-2xl shadow-sm p-4">
               <h2 className="text-lg font-semibold text-gray-700 mb-3">
-                Lista ({filtrados.length})
+                Lista ({filtro === "todos" && !search ? counts.total : filtrados.length})
               </h2>
               <input
                 type="text"

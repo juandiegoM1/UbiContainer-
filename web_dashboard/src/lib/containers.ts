@@ -25,6 +25,14 @@ export type ContainerInput = {
   creado_por?: string | null;
 };
 
+export type ContainerStats = {
+  total: number;
+  verde: number;
+  naranja: number;
+  soterrado: number;
+  units: number;
+};
+
 const SELECT_WITH_CREATOR =
   "id, tipo, latitude, longitude, nombre, cantidad, estado, nivel_llenado, creado_por";
 const SELECT_BASE =
@@ -109,6 +117,42 @@ async function fetchNextContainerId(): Promise<number> {
   return (typeof maxId === "number" ? maxId : 0) + 1;
 }
 
+export function normalizeContainerTipo(value: unknown): ContainerTipo | null {
+  if (typeof value !== "string") return null;
+  const tipo = value.trim().toLowerCase();
+  if (tipo === "verde" || tipo === "naranja" || tipo === "soterrado") {
+    return tipo;
+  }
+  if (tipo === "superficial") return "naranja";
+  return null;
+}
+
+export function computeContainerStats(rows: ContainerRow[]): ContainerStats {
+  let verde = 0;
+  let naranja = 0;
+  let soterrado = 0;
+  let units = 0;
+
+  for (const row of rows) {
+    const cantidad = Number.isFinite(Number(row.cantidad))
+      ? Math.max(1, Number(row.cantidad))
+      : 1;
+    units += cantidad;
+
+    if (row.tipo === "verde") verde += 1;
+    else if (row.tipo === "naranja") naranja += 1;
+    else if (row.tipo === "soterrado") soterrado += 1;
+  }
+
+  return {
+    total: rows.length,
+    verde,
+    naranja,
+    soterrado,
+    units,
+  };
+}
+
 function normalizeContainerRow(row: Record<string, unknown>): ContainerRow | null {
   const latitude = Number(row.latitude);
   const longitude = Number(row.longitude);
@@ -121,9 +165,12 @@ function normalizeContainerRow(row: Record<string, unknown>): ContainerRow | nul
     return null;
   }
 
+  const tipo = normalizeContainerTipo(row.tipo);
+  if (!tipo) return null;
+
   return {
     id,
-    tipo: row.tipo as ContainerTipo,
+    tipo,
     latitude,
     longitude,
     nombre: (row.nombre as string | null) ?? null,
@@ -165,6 +212,18 @@ async function fetchWithSelect(select: string): Promise<ContainerRow[]> {
 const SELECT_MINIMAL =
   "id, tipo, latitude, longitude, nombre, cantidad, estado";
 
+async function fetchContainersCountByTipo(
+  tipo: ContainerTipo
+): Promise<number> {
+  const { count, error } = await supabase
+    .from("contenedores")
+    .select("id", { count: "exact", head: true })
+    .eq("tipo", tipo);
+
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 export async function fetchContainersCount(): Promise<number> {
   const { count, error } = await supabase
     .from("contenedores")
@@ -172,6 +231,23 @@ export async function fetchContainersCount(): Promise<number> {
 
   if (error) throw new Error(error.message);
   return count ?? 0;
+}
+
+export async function fetchContainerStats(): Promise<ContainerStats> {
+  const [total, verde, naranja, soterrado] = await Promise.all([
+    fetchContainersCount(),
+    fetchContainersCountByTipo("verde"),
+    fetchContainersCountByTipo("naranja"),
+    fetchContainersCountByTipo("soterrado"),
+  ]);
+
+  return {
+    total,
+    verde,
+    naranja,
+    soterrado,
+    units: total,
+  };
 }
 
 export async function fetchContainers(): Promise<ContainerRow[]> {
@@ -183,15 +259,23 @@ export async function fetchContainers(): Promise<ContainerRow[]> {
   ];
 
   let lastError: string | null = null;
+  let bestRows: ContainerRow[] = [];
 
   for (const select of attempts) {
     try {
       const rows = await fetchWithSelect(select);
-      if (rows.length > 0) return rows;
+      if (rows.length > bestRows.length) {
+        bestRows = rows;
+      }
+      if (rows.length > 0) {
+        return rows;
+      }
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Error desconocido";
     }
   }
+
+  if (bestRows.length > 0) return bestRows;
 
   throw new Error(lastError ?? "No se pudieron cargar los contenedores");
 }
