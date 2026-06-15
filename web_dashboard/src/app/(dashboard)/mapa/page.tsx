@@ -177,17 +177,6 @@ export default function MapaPage() {
     });
   }
 
-  const nuevoContenedorButtonClass =
-    "min-h-[44px] px-4 py-2.5 bg-[#2D6A4F] hover:bg-[#1a4a35] active:bg-[#1a4a35] text-white rounded-lg text-sm font-medium transition touch-manipulation";
-
-  function renderNuevoContenedorButton(className = nuevoContenedorButtonClass) {
-    return (
-      <button type="button" onClick={startCreate} className={className}>
-        + Nuevo contenedor
-      </button>
-    );
-  }
-
   function startCreate() {
     setSuccessMessage(null);
     setFormError(null);
@@ -633,7 +622,15 @@ export default function MapaPage() {
       <PageHeader
         title="Mapa de Contenedores"
         description="Contenedores y mapa de calor de vertederos ilegales para que EMSA identifique zonas criticas y priorice incidentes"
-        action={renderNuevoContenedorButton("w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-[#2D6A4F] hover:bg-[#1a4a35] active:bg-[#1a4a35] text-white rounded-lg text-sm font-medium transition touch-manipulation")}
+        action={
+          <button
+            type="button"
+            onClick={startCreate}
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-[#2D6A4F] hover:bg-[#1a4a35] active:bg-[#1a4a35] text-white rounded-lg text-sm font-medium transition touch-manipulation"
+          >
+            + Nuevo contenedor
+          </button>
+        }
       />
 
       <DataState
@@ -642,19 +639,6 @@ export default function MapaPage() {
         onRetry={reload}
         loadingMessage="Cargando contenedores..."
       >
-        <div className="lg:hidden sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-4 bg-gray-100/95 backdrop-blur border-b border-gray-200 flex gap-2">
-          {renderNuevoContenedorButton("flex-1")}
-          {mode !== "view" ? (
-            <button
-              type="button"
-              onClick={cancelForm}
-              className="min-h-[44px] px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white touch-manipulation"
-            >
-              Cancelar
-            </button>
-          ) : null}
-        </div>
-
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
           <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#2D6A4F]">
             <p className="text-2xl font-bold text-gray-800">
