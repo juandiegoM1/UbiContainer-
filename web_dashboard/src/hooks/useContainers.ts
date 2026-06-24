@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ContainerRow,
   ContainerStats,
@@ -119,6 +119,7 @@ export function useContainers() {
     units: 0,
   });
   const [reloadKey, setReloadKey] = useState(0);
+  const hasLoadedOnceRef = useRef(false);
 
   const reload = useCallback(() => {
     setReloadKey((key) => key + 1);
@@ -128,7 +129,11 @@ export function useContainers() {
     let cancelled = false;
 
     async function load() {
-      setLoading(true);
+      // Solo bloquear toda la pagina en la primera carga. Recargas silenciosas
+      // evitan desmontar el mapa (y el boton de ubicacion quedaba en "cargando").
+      if (!hasLoadedOnceRef.current) {
+        setLoading(true);
+      }
       setError(null);
 
       try {
@@ -150,6 +155,7 @@ export function useContainers() {
         }
       } finally {
         if (!cancelled) {
+          hasLoadedOnceRef.current = true;
           setLoading(false);
         }
       }

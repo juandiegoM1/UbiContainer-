@@ -19,9 +19,11 @@ type DraftPosition = {
 
 const GEOLOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
-  maximumAge: 0,
-  timeout: 30000,
+  maximumAge: 15000,
+  timeout: 12000,
 };
+
+const USER_LOCATION_BUTTON_TIMEOUT_MS = 12000;
 
 type ContainersMapProps = {
   containers: ContainerRow[];
@@ -61,11 +63,35 @@ export default function ContainersMap({
   const prevShowHeatmapRef = useRef(showHeatmap);
   const prevHeatCountRef = useRef(0);
   const handlersRef = useRef({ onSelect, onMapClick, pickOnMap });
-  const requestUserLocationRef = useRef<(fly?: boolean) => void>(() => undefined);
+  const requestUserLocationRef = useRef<
+    (options?: { fly?: boolean; showLoading?: boolean }) => void
+  >(() => undefined);
+  const locatingTimeoutRef = useRef<number | null>(null);
   const askedOnGestureRef = useRef(false);
   const [userLocationError, setUserLocationError] = useState<string | null>(null);
   const [hasUserLocation, setHasUserLocation] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+
+  const clearLocatingTimeout = useCallback(() => {
+    if (locatingTimeoutRef.current != null) {
+      window.clearTimeout(locatingTimeoutRef.current);
+      locatingTimeoutRef.current = null;
+    }
+  }, []);
+
+  const stopLocatingUi = useCallback(() => {
+    clearLocatingTimeout();
+    setIsLocating(false);
+  }, [clearLocatingTimeout]);
+
+  const startLocatingUi = useCallback(() => {
+    clearLocatingTimeout();
+    setIsLocating(true);
+    locatingTimeoutRef.current = window.setTimeout(() => {
+      locatingTimeoutRef.current = null;
+      setIsLocating(false);
+    }, USER_LOCATION_BUTTON_TIMEOUT_MS);
+  }, [clearLocatingTimeout]);
 
   function getSecureContextError(): string | null {
     if (typeof window === "undefined") return null;
@@ -302,7 +328,9 @@ export default function ContainersMap({
   }, []);
 
   const requestUserLocation = useCallback(
-    (fly = true) => {
+    (options?: { fly?: boolean; showLoading?: boolean }) => {
+      const fly = options?.fly ?? true;
+      const showLoading = options?.showLoading ?? false;
       const map = mapRef.current;
       if (!map || !mapReadyRef.current) {
         setUserLocationError("El mapa aun se esta cargando. Intenta en un momento");
@@ -320,7 +348,11 @@ export default function ContainersMap({
         return;
       }
 
-      setIsLocating(true);
+      if (showLoading) {
+        startLocatingUi();
+      } else {
+        stopLocatingUi();
+      }
       setUserLocationError(null);
 
       if (!userCoordsRef.current) {
@@ -329,18 +361,24 @@ export default function ContainersMap({
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setIsLocating(false);
+          stopLocatingUi();
           processGeolocationPosition(map, position, fly);
           startUserLocationWatch(map);
         },
         (error) => {
-          setIsLocating(false);
-          handleGeolocationError(error);
+          stopLocatingUi();
+          handleGeolocationError(error, !showLoading);
         },
         GEOLOCATION_OPTIONS
       );
     },
-    [handleGeolocationError, processGeolocationPosition, startUserLocationWatch]
+    [
+      handleGeolocationError,
+      processGeolocationPosition,
+      startLocatingUi,
+      startUserLocationWatch,
+      stopLocatingUi,
+    ]
   );
 
   requestUserLocationRef.current = requestUserLocation;
@@ -353,6 +391,7 @@ export default function ContainersMap({
     }
 
     if (userCoordsRef.current) {
+      stopLocatingUi();
       applyUserLocation(
         map,
         userCoordsRef.current.latitude,
@@ -366,8 +405,13 @@ export default function ContainersMap({
       return;
     }
 
-    requestUserLocation(true);
-  }, [applyUserLocation, requestUserLocation, startUserLocationWatch]);
+    requestUserLocation({ fly: true, showLoading: true });
+  }, [
+    applyUserLocation,
+    requestUserLocation,
+    startUserLocationWatch,
+    stopLocatingUi,
+  ]);
 
   function updateDraftMarker(map: mapboxgl.Map, draft: DraftPosition | null) {
     const source = map.getSource("draft-point") as mapboxgl.GeoJSONSource | undefined;
@@ -647,7 +691,7 @@ export default function ContainersMap({
         setUserLocationError(secureContextError);
       } else {
         window.setTimeout(() => {
-          requestUserLocationRef.current(false);
+          requestUserLocationRef.current({ fly: false, showLoading: false });
         }, 400);
       }
 
@@ -660,6 +704,7 @@ export default function ContainersMap({
 
     return () => {
       stopUserLocationPolling();
+      stopLocatingUi();
       if (userLocationWatchRef.current != null) {
         navigator.geolocation.clearWatch(userLocationWatchRef.current);
         userLocationWatchRef.current = null;
@@ -668,7 +713,7 @@ export default function ContainersMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [startUserLocationWatch, stopUserLocationPolling]);
+  }, [startUserLocationWatch, stopLocatingUi, stopUserLocationPolling]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -781,7 +826,7 @@ export default function ContainersMap({
         onClick={() => {
           if (askedOnGestureRef.current || hasUserLocation || isLocating) return;
           askedOnGestureRef.current = true;
-          requestUserLocationRef.current(false);
+          requestUserLocationRef.current({ fly: false, showLoading: false });
         }}
       />
       <div className="absolute inset-0 z-20 pointer-events-none">
