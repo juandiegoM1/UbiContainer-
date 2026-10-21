@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Pruebas Unitarias - UbiContainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card.total .number { color: #667eea; }
+        .stat-card.passed .number { color: #10b981; }
+        .stat-card.failed .number { color: #ef4444; }
+        .stat-card.success-rate .number { color: #f59e0b; }
+
+        .progress-bar {
+            margin-top: 20px;
+            height: 30px;
+            background: #e5e7eb;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #10b981 var(--passed), #ef4444 var(--passed), #ef4444 100%);
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .test-section {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .test-list {
+            list-style: none;
+        }
+
+        .test-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .test-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-item.passed {
+            border-left: 4px solid #10b981;
+        }
+
+        .test-item.failed {
+            border-left: 4px solid #ef4444;
+        }
+
+        .test-header {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .test-name {
+            flex: 1;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .test-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .test-status.passed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .test-status.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .test-duration {
+            margin-left: 15px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .test-details {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .test-details.expanded {
+            max-height: 500px;
+            padding: 20px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s;
+        }
+
+        .collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card .number {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Reporte de Pruebas Unitarias</h1>
+            <p>UbiContainer - Sistema de Gestión de Residuos Urbanos</p>
+            <p>Generado el 21 de Octubre de 2026</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="stat-card total">
+                <div class="number">128</div>
+                <div class="label">Total de Pruebas</div>
+            </div>
+            <div class="stat-card passed">
+                <div class="number">106</div>
+                <div class="label">Pasadas ✓</div>
+            </div>
+            <div class="stat-card failed">
+                <div class="number">22</div>
+                <div class="label">Fallidas ✗</div>
+            </div>
+            <div class="stat-card success-rate">
+                <div class="number">82.8%</div>
+                <div class="label">Tasa de Éxito</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" style="--passed: 82.8%; width: 100%;"></div>
+        </div>
+
+        <div class="progress-text">
+            106 de 128 pruebas pasaron (82.8% de éxito)
+        </div>
+
+        <!-- Backend Tests -->
+        <div class="test-section">
+            <h2 class="section-title">
+                Backend (Python/FastAPI)
+                <span class="section-badge">48 pruebas</span>
+            </h2>
+            <ul class="test-list">
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_valid_creation</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_password_too_short</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_celular_invalid</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_celular_too_short</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_celular_too_long</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_celular_none_allowed</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_user_celular_empty_allowed</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestUserModel::test_FALLA_user_celular_invalid_format</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Este test está diseñado para fallar intencionalmente para demostrar el reporte de errores.</p>
+                        <div class="error-message">
+                            AssertionError: Este test está diseñado para fallar<br>
+                            assert False
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_valid_creation</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_latitude_invalid_high</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_latitude_invalid_low</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_longitude_invalid_high</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_longitude_invalid_low</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_type_invalid</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_type_soterrado</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_latitude_boundary_max</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_container_latitude_boundary_min</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerCreateModel::test_FALLA_container_latitude_boundary_invalid</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: Este test está diseñado para fallar<br>
+                            assert False
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerUpdateModel::test_container_update_latitude</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerUpdateModel::test_container_update_longitude</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerUpdateModel::test_container_update_both</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerUpdateModel::test_container_update_none_allowed</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestContainerUpdateModel::test_FALLA_container_update_invalid_latitude</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: assert 89.0 is None
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestDumpReportCreateModel::test_dump_report_valid</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestDumpReportCreateModel::test_dump_report_without_description</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestDumpReportCreateModel::test_dump_report_description_too_long</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestDumpReportCreateModel::test_dump_report_latitude_boundary</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestDumpReportCreateModel::test_FALLA_dump_report_invalid_latitude</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: Este test está diseñado para fallar<br>
+                            assert False
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestReportCreateModel::test_report_valid</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestReportCreateModel::test_report_with_container_id</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestReportCreateModel::test_report_minimal</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestReportCreateModel::test_FALLA_report_invalid_latitude</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestHashPassword::test_hash_password_consistent</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestHashPassword::test_hash_password_different</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestHashPassword::test_hash_password_length</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestHashPassword::test_hash_password_empty</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestHashPassword::test_FALLA_hash_password_inconsistent</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar - el hash debería ser consistente.</p>
+                        <div class="error-message">
+                            AssertionError: assert 'ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae' != 'ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae'
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestAPIEndpoints::test_root_endpoint</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestAPIEndpoints::test_root_endpoint_json_structure</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestAPIEndpoints::test_FALLA_nonexistent_endpoint</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar - endpoint inexistente debería retornar 404.</p>
+                        <div class="error-message">
+                            AssertionError: assert 404 == 200
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestCoordinateValidation::test_latitude_cochabamba</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestCoordinateValidation::test_longitude_cochabamba</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestCoordinateValidation::test_latitude_valid_range</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestCoordinateValidation::test_longitude_valid_range</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestCoordinateValidation::test_FALLA_latitude_invalid_range</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar - latitud 95.0 está fuera de rango.</p>
+                        <div class="error-message">
+                            AssertionError: assert 95.0 <= 90
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestEmailValidation::test_valid_email_simple</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestEmailValidation::test_valid_email_with_subdomain</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">TestEmailValidation::test_FALLA_invalid_email_format</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar - email inválido no debería pasar validación.</p>
+                        <div class="error-message">
+                            ValidationError: 1 validation error for User<br>
+                            correo<br>
+                            value is not a valid email address: An email address must have an @-sign.
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Web Dashboard Tests -->
+        <div class="test-section">
+            <h2 class="section-title">
+                Web Dashboard (TypeScript/Vitest)
+                <span class="section-badge">51 pruebas</span>
+            </h2>
+            <ul class="test-list">
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Container Capacity Calculations should calculate percentage correctly for 0</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.73ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Container Capacity Calculations should calculate percentage correctly for 50</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.08ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Container Capacity Calculations should calculate percentage correctly for 100</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.06ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Container Capacity Calculations should handle zero max gracefully</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.08ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Container Capacity Calculations should clamp percentage to max 100</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.05ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Container Capacity Calculations FAILA should calculate percentage incorrectly</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected 50 to be 75
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Coordinate Validation should validate latitude within range</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.05ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Coordinate Validation should validate longitude within range</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Coordinate Validation should reject invalid latitude</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Coordinate Validation should reject invalid longitude</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Coordinate Validation should accept boundary values</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.05ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Coordinate Validation FAILA should accept invalid latitude</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected false to be true
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">String Utilities should capitalize first letter</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">String Utilities should handle empty string</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">String Utilities should handle single character</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">String Utilities should trim whitespace</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">String Utilities FAILA should fail to capitalize</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected 'Hello' to be 'hello'
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Date Utilities should format date correctly</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Date Utilities should get current year</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Date Utilities should calculate days difference</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Date Utilities should handle same date</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Date Utilities FAILA should miscalculate days difference</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected 1 to be 2
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Array Utilities should filter array correctly</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Array Utilities should map array correctly</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Array Utilities should reduce array correctly</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Array Utilities should find element in array</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Array Utilities should handle empty array</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Array Utilities FAILA should fail to filter array</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected [3, 4, 5] to be [1, 2, 3]
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Number Utilities should round to 2 decimal places</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Number Utilities should handle negative numbers</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Number Utilities should convert string to number</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Number Utilities should handle invalid string to number</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Number Utilities should clamp value between min and max</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Number Utilities FAILA should fail to round number</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected 3.14 to be 3.15
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Object Utilities should get object keys</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Object Utilities should get object values</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Object Utilities should merge objects</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Object Utilities should handle empty object</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Object Utilities FAILA should fail to merge objects</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected { a: 1, b: 2 } to be { a: 1 }
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Boolean Utilities should convert truthy values to true</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Boolean Utilities should convert falsy values to false</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Boolean Utilities should handle negation</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Boolean Utilities FAILA should fail boolean conversion</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected false to be true
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">URL Utilities should construct URL with params</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">URL Utilities should encode URL components</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">URL Utilities should decode URL components</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">URL Utilities FAILA should fail to encode URL</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected 'hello%20world' to be 'hello world'
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Color Utilities should determine status color for active</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Color Utilities should determine status color for inactive</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Color Utilities should handle unknown status</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Color Utilities FAILA should fail to determine status color</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.04ms</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            AssertionError: expected 'green' to be 'red'
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Flutter Tests -->
+        <div class="test-section">
+            <h2 class="section-title">
+                App Móvil (Flutter/Dart)
+                <span class="section-badge">29 pruebas</span>
+            </h2>
+            <ul class="test-list">
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería crear un Contenedor con valores por defecto</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.05s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería crear un Contenedor con todos los valores</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería serializar Contenedor a JSON correctamente</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería deserializar Contenedor desde JSON correctamente</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería manejar valores nulos en fromJson</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería clamping nivelLlenado entre 0 y 100</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests Debería parsear nivelLlenado como string</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Contenedor Tests FALLA Este test está diseñado para fallar - validación de ID vacío</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            Expected: true, Actual: false
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería crear un Reporte con valores por defecto</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería obtener descripción para tipo lleno</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería obtener descripción para tipo fueraDeServicio</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería obtener descripción personalizada si existe comentario</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería serializar Reporte a JSON</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería deserializar Reporte desde JSON</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests Debería manejar tipo desconocido en fromJson</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Reporte Tests FALLA Este test está diseñado para fallar - validación de timestamp</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            Expected: true, Actual: false
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">DumpReport Tests Debería crear un DumpReport con valores por defecto</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">DumpReport Tests Debería serializar DumpReport a JSON</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">DumpReport Tests Debería deserializar DumpReport desde JSON con snake_case</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.04s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">DumpReport Tests Debería manejar valores nulos en DumpReport fromJson</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">DumpReport Tests Debería convertir timestamp válido</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.03s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">DumpReport Tests FALLA Este test está diseñado para fallar - validación de photoPath</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            Expected: true, Actual: false
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Funciones auxiliares Tests Debería convertir estado en_proceso a enProceso</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Funciones auxiliares Tests Debería convertir estado atendido a atendido</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Funciones auxiliares Tests Debería convertir estado desconocido a pendiente</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.02s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Funciones auxiliares Tests Debería convertir estado null a pendiente</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item failed">
+                    <div class="test-header" onclick="toggleDetails(this)">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Funciones auxiliares Tests FALLA Este test está diseñado para fallar - conversión de estado</span>
+                        </div>
+                        <span class="test-status failed">FAILED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                    <div class="test-details">
+                        <p><strong>Error:</strong> Test diseñado para fallar intencionalmente.</p>
+                        <div class="error-message">
+                            Expected: ReporteEstado.enProceso, Actual: ReporteEstado.atendido
+                        </div>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Config Tests Debería tener backendUrl configurado</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+                <li class="test-item passed">
+                    <div class="test-header">
+                        <div class="collapsible-header">
+                            <span class="collapse-icon">▼</span>
+                            <span class="test-name">Config Tests Debería ser localhost en desarrollo</span>
+                        </div>
+                        <span class="test-status passed">PASSED</span>
+                        <span class="test-duration">0.01s</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Reporte generado automáticamente - UbiContainer Testing Suite</p>
+            <p>Frameworks: Python/pytest, TypeScript/Vitest, Flutter (simulado)</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleDetails(header) {
+            const details = header.nextElementSibling;
+            const parent = header.parentElement;
+
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                parent.classList.add('collapsed');
+            } else {
+                details.classList.add('expanded');
+                parent.classList.remove('collapsed');
+            }
+        }
+
+        // Auto-expand failed tests
+        document.querySelectorAll('.test-item.failed').forEach(item => {
+            const details = item.querySelector('.test-details');
+            if (details) {
+                details.classList.add('expanded');
+                item.classList.remove('collapsed');
+            }
+        });
+    </script>
+</body>
+</html>

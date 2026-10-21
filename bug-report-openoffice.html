@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Técnico de Bug - Apache OpenOffice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .section h2 {
+            color: #1e3c72;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .section h3 {
+            color: #2a5298;
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item label {
+            display: block;
+            font-weight: bold;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-item span {
+            color: #333;
+            font-size: 14px;
+        }
+
+        .severity-critical {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .severity-high {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .severity-medium {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .severity-low {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .priority-p1 {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .priority-p2 {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .priority-p3 {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin: 10px 0;
+            color: #444;
+        }
+
+        .evidence-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .evidence-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .evidence-box p {
+            color: #856404;
+            margin: 5px 0;
+        }
+
+        .hiccupps-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        .hiccupps-table th,
+        .hiccupps-table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .hiccupps-table th {
+            background: #2a5298;
+            color: white;
+            font-weight: bold;
+        }
+
+        .hiccupps-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .applied {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .not-applied {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .iso-box {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #10b981;
+        }
+
+        .followup-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        .followup-table th,
+        .followup-table td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .followup-table th {
+            background: #10b981;
+            color: white;
+            font-weight: bold;
+        }
+
+        .followup-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐛 Reporte Técnico de Bug</h1>
+            <p>Apache OpenOffice - Investigación y Análisis de Calidad</p>
+            <p>Aplicando metodologías: Cem Kaner, HICCUPPS, ISO/IEC 25010, ISO 9001</p>
+        </div>
+
+        <div class="content">
+            <!-- 1. Datos del equipo -->
+            <div class="section">
+                <h2>1. Datos del Equipo</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Materia</label>
+                        <span>Testing y Quality Assurance (QA)</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Docente</label>
+                        <span>Dr. Juan Pérez</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Fecha</label>
+                        <span>21 de Octubre de 2026</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Grupo</label>
+                        <span>Grupo A - Sección 101</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Integrantes</label>
+                        <span>María González, Carlos Rodríguez, Ana Martínez</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Identificación y contexto del bug -->
+            <div class="section">
+                <h2>2. Identificación y Contexto del Bug</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Bug ID Oficial</label>
+                        <span>119268</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Summary</label>
+                        <span>Paragraph Format Import Bug with Heading 1-5 Styles</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Módulo</label>
+                        <span>Writer</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Versión</label>
+                        <span>Apache OpenOffice 3.3, 3.4.1</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Sistema Operativo</label>
+                        <span>Windows 7, Linux</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Configuración</label>
+                        <span>Importación de archivos .doc de MS Word 2003/2007 con estilos avanzados</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Estado Oficial</label>
+                        <span>CONFIRMED</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Severidad Oficial</label>
+                        <span>Normal</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Prioridad Oficial</label>
+                        <span>P3</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Investigación previa -->
+            <div class="section">
+                <h2>3. Investigación Previa</h2>
+                <h3>¿Qué dice el reporte oficial del bug y cuál es su estado?</h3>
+                <p>El bug fue reportado originalmente en 2012 por el usuario "slacka" y ha sido confirmado. El estado actual es "CONFIRMED" en el sistema de Bugzilla de Apache OpenOffice. El reporte indica que OpenOffice pierde el formato al importar archivos .doc de MS Word 2003/2007 con estilos avanzados y nuevas líneas.</p>
+
+                <h3>¿Existen bugs relacionados o duplicados?</h3>
+                <p>Sí, el Issue 119269 fue marcado como duplicado de este bug (119268). Esto sugiere que el problema fue reportado por múltiples usuarios, lo que indica su relevancia y frecuencia de aparición.</p>
+
+                <h3>¿Sucede en otras versiones o configuraciones?</h3>
+                <p>El bug ha sido confirmado en:</p>
+                <ul>
+                    <li>Apache OpenOffice 3.3 (versión original del reporte)</li>
+                    <li>Apache OpenOffice 3.4.1 (Revisión 1372282) - confirmado por Nicolas en 2012</li>
+                    <li>Sistemas operativos: Windows 7 y Linux</li>
+                </ul>
+
+                <h3>¿Cambia el comportamiento al modificar datos u opciones?</h3>
+                <p>Según la investigación de Nicolas, el problema está relacionado con un carácter especial de nueva línea (VT - Vertical Tab) que MS Word utiliza. Si se copia y pega este carácter específico de Word a OpenOffice, el problema persiste. Sin embargo, si se presiona Enter para agregar una nueva línea normal en cualquiera de los programas, el alineamiento correcto se mantiene.</p>
+
+                <h3>¿Qué evidencia permite establecer cómo debería funcionar el programa?</h3>
+                <p>La evidencia proviene de:</p>
+                <ul>
+                    <li>Comparación directa con Microsoft Word 2003/2007, donde el formato se mantiene correctamente</li>
+                    <li>Documentación de importación de OpenOffice, que especifica que los archivos .doc deben mantener su formato original</li>
+                    <li>Expectativas razonables del usuario de que un documento importado mantenga su apariencia original</li>
+                </ul>
+            </div>
+
+            <!-- 4. Prueba y reproducción -->
+            <div class="section">
+                <h2>4. Prueba y Reproducción</h2>
+                <h3>Precondiciones</h3>
+                <ul>
+                    <li>Tener Apache OpenOffice 3.3 o superior instalado</li>
+                    <li>Tener acceso a un archivo .doc de MS Word 2003/2007 con estilos avanzados y texto centrado con saltos de línea manuales</li>
+                    <li>Tener Microsoft Word 2003/2007 instalado para comparación (opcional pero recomendado)</li>
+                </ul>
+
+                <h3>Pasos de Reproducción</h3>
+                <ol>
+                    <li>Descargar o crear un archivo .doc de MS Word con estilos de encabezado (Heading 1-5) y texto centrado que contenga saltos de línea manuales (Shift+Enter)</li>
+                    <li>Abrir el archivo en Microsoft Word 2003/2007 y observar el formato correcto (texto centrado mantenido en todas las líneas)</li>
+                    <li>Cerrar el archivo en Microsoft Word</li>
+                    <li>Abrir el mismo archivo en Apache OpenOffice Writer</li>
+                    <li>Observar que las líneas después de un salto de línea manual pierden el centrado y aparecen con indentación incorrecta</li>
+                    <li>Comparar visualmente ambas visualizaciones para confirmar la diferencia</li>
+                </ol>
+
+                <h3>Frecuencia</h3>
+                <p>El defecto aparece en el 100% de los intentos cuando se importan archivos .doc con las características específicas mencionadas (estilos de encabezado y saltos de línea manuales en texto centrado). Es reproducible consistentemente.</p>
+
+                <h3>Configuraciones Probadas</h3>
+                <ul>
+                    <li><strong>Versión 3.3</strong> en Windows 7 - Bug reproducible</li>
+                    <li><strong>Versión 3.3</strong> en Linux - Bug reproducible</li>
+                    <li><strong>Versión 3.4.1 (Rev. 1372282)</strong> en Windows 7 - Bug reproducible</li>
+                    <li><strong>Archivos de prueba</strong>: Documentos .doc de MS Word 2003/2007 con estilos Heading 1-5</li>
+                </ul>
+
+                <div class="evidence-box">
+                    <h4>📸 Evidencia</h4>
+                    <p><strong>Archivo adjunto original</strong>: ParagraphCenterBug.doc (84 KB) - documento de prueba que demuestra el bug</p>
+                    <p><strong>Captura de pantalla</strong>: alignment_bug.jpg (50.53 KB) - muestra visualmente la diferencia entre Word y OpenOffice</p>
+                    <p><strong>Análisis técnico</strong>: Notepad++ detecta que el carácter de nueva línea es un "VT" (Vertical Tab, código ASCII 11) en lugar de un salto de línea normal</p>
+                </div>
+            </div>
+
+            <!-- 5. Resultado esperado y resultado actual -->
+            <div class="section">
+                <h2>5. Resultado Esperado y Resultado Actual</h2>
+
+                <h3>Resultado Esperado (Oráculo)</h3>
+                <p>Al importar un archivo .doc de MS Word con texto centrado y saltos de línea manuales, Apache OpenOffice Writer debería:</p>
+                <ul>
+                    <li>Mantener el formato de centrado en todas las líneas del párrafo</li>
+                    <li>Preservar los estilos de encabezado (Heading 1-5) correctamente</li>
+                    <li>Interpretar los caracteres de nueva línea de manera consistente con MS Word</li>
+                    <li>Producir una visualización idéntica o sustancialmente similar a la de MS Word</li>
+                </ul>
+
+                <h3>Resultado Actual</h3>
+                <p>Lo que realmente sucede al ejecutar la prueba:</p>
+                <ul>
+                    <li>El filtro de importación de OpenOffice interpreta incorrectamente el carácter VT (Vertical Tab) como un salto de párrafo</li>
+                    <li>Las líneas después de un salto de línea manual pierden el centrado</li>
+                    <li>Aparece una indentación incorrecta en las líneas afectadas</li>
+                    <li>El formato del documento difiere significativamente de la visualización en MS Word</li>
+                    <li>Solo los párrafos completos (nuevos párrafos creados con Enter) mantienen el centrado correctamente</li>
+                </ul>
+
+                <div class="evidence-box">
+                    <h4>⚠️ Evidencia del Fallo</h4>
+                    <p><strong>Visual</strong>: La captura de pantalla "alignment_bug.jpg" muestra claramente que en MS Word el texto "www.xpnet.com" aparece centrado, mientras que en OpenOffice aparece con indentación incorrecta.</p>
+                    <p><strong>Técnico</strong>: Análisis con Notepad++ revela que el carácter entre líneas es VT (ASCII 11), un carácter que OpenOffice no interpreta correctamente como un salto de línea suave.</p>
+                    <p><strong>Consistencia</strong>: El problema es reproducible al 100% en las versiones 3.3 y 3.4.1 en Windows y Linux.</p>
+                </div>
+            </div>
+
+            <!-- 6. Aplicación de HICCUPPS -->
+            <div class="section">
+                <h2>6. Aplicación de HICCUPPS</h2>
+                <p>Heurísticas evaluadas para justificar por qué el comportamiento observado es incorrecto:</p>
+
+                <table class="hiccupps-table">
+                    <thead>
+                        <tr>
+                            <th>Letra</th>
+                            <th>Concepto</th>
+                            <th>Pregunta Principal</th>
+                            <th>¿Aplica?</th>
+                            <th>Justificación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>H</strong></td>
+                            <td>History (Historial)</td>
+                            <td>¿Es diferente del comportamiento anterior del producto?</td>
+                            <td><span class="not-applied">NO</span></td>
+                            <td>No hay evidencia de que esto funcionara correctamente en versiones anteriores. El bug parece ser un problema de implementación original del filtro de importación.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>I</strong></td>
+                            <td>Industry (Industria)</td>
+                            <td>¿Contradice las prácticas habituales de la industria?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>La industria de procesadores de texto espera que la importación de formatos de archivo populares como .doc mantenga la fidelidad del formato. Competidores como LibreOffice y Microsoft Word mismo interpretan correctamente estos caracteres.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>C</strong></td>
+                            <td>Customer (Cliente)</td>
+                            <td>¿Incumple las necesidades del cliente?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>Los usuarios que migran de MS Word a OpenOffice esperan que sus documentos mantengan su apariencia. La pérdida de formato frustra esta necesidad fundamental de migración y compatibilidad.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>C</strong></td>
+                            <td>Competitor (Competencia)</td>
+                            <td>¿Otros productos similares se comportan de manera diferente?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>Microsoft Word interpreta correctamente el carácter VT. LibreOffice (fork de OpenOffice) también maneja este caso correctamente. Esto demuestra que es un problema específico de OpenOffice que otras herramientas han resuelto.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>U</strong></td>
+                            <td>User (Usuario)</td>
+                            <td>¿Contradice las expectativas razonables del usuario?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>Es razonable esperar que al abrir un documento .doc, el formato se preserve. El usuario no debería necesitar corregir manualmente el formato después de importar un archivo.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>P</strong></td>
+                            <td>Product (Producto)</td>
+                            <td>¿Contradice la documentación o especificación del producto?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>La documentación de OpenOffice indica que es compatible con archivos .doc de MS Word. Este bug contradice esa afirmación de compatibilidad.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>P</strong></td>
+                            <td>Purpose (Propósito)</td>
+                            <td>¿Va contra la finalidad de la función?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>El propósito del filtro de importación es permitir a los usuarios trabajar con documentos existentes. Cuando el formato se pierde, se frustra este propósito fundamental.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>S</strong></td>
+                            <td>Standards (Estándares)</td>
+                            <td>¿Incumple convenciones, estándares o requisitos aplicables?</td>
+                            <td><span class="applied">SÍ</span></td>
+                            <td>El formato .doc es un estándar de facto de la industria. No interpretar correctamente los caracteres de control definidos en este estándar incumple las convenciones del formato.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>Heurísticas aplicadas y justificadas: 7 de 8</strong> (Industry, Customer, Competitor, User, Product, Purpose, Standards)</p>
+            </div>
+
+            <!-- 7. Análisis de riesgo y severidad -->
+            <div class="section">
+                <h2>7. Análisis de Riesgo y Severidad</h2>
+
+                <h3>Evaluación de Impacto</h3>
+                <ul>
+                    <li><strong>Alcance y cantidad de personas afectadas</strong>: Alto. Cualquier usuario que importe documentos .doc de MS Word con estilos de encabezado y texto centrado con saltos de línea manuales se verá afectado. Esto incluye usuarios corporativos, estudiantes y profesionales que migran de MS Office.</li>
+                    <li><strong>Costo o impacto por fallo</strong>: Medio. El usuario debe corregir manualmente el formato, lo que consume tiempo y puede causar frustración. No hay pérdida de datos, pero sí pérdida de productividad.</li>
+                    <li><strong>Frecuencia y condiciones de aparición</strong>: Alta. El bug es reproducible al 100% en las condiciones específicas. Afecta a una funcionalidad de uso común (importación de documentos).</li>
+                    <li><strong>Pérdida o corrupción de información</strong>: Baja. No hay pérdida de contenido de texto, solo de formato. La información semántica se mantiene.</li>
+                    <li><strong>Bloqueo o indisponibilidad</strong>: Baja. El usuario puede continuar trabajando, aunque con formato incorrecto. No bloquea la funcionalidad del programa.</li>
+                    <li><strong>Alternativas para continuar trabajando (workaround)</strong>: Disponible. El usuario puede:
+                        <ul>
+                            <li>Usar el formato nativo ODT en lugar de .doc</li>
+                            <li>Corregir manualmente el formato después de importar</li>
+                            <li>Usar LibreOffice en lugar de OpenOffice</li>
+                            <li>Evitar el uso de saltos de línea manuales en texto centrado</li>
+                        </ul>
+                    </li>
+                    <li><strong>Extensiones a otras configuraciones</strong>: El bug afecta múltiples versiones (3.3, 3.4.1) y sistemas operativos (Windows, Linux), lo que indica un problema profundo en el filtro de importación.</li>
+                    <li><strong>Resultados de pruebas de seguimiento</strong>: El bug persistió por al menos 2 años (2012-2014) sin corrección, lo que sugiere dificultad técnica o baja prioridad asignada.</li>
+                </ul>
+
+                <h3>Severidad Propuesta</h3>
+                <p>Basado en el análisis anterior, propongo la siguiente clasificación:</p>
+                <div class="info-item" style="margin: 20px 0;">
+                    <label>Severidad</label>
+                    <span class="severity-medium">MEDIUM (Media)</span>
+                </div>
+
+                <p><strong>Justificación</strong>: Aunque el bug afecta una funcionalidad importante y es reproducible consistentemente, no causa pérdida de datos ni bloquea el uso del programa. Hay workarounds disponibles. Sin embargo, su impacto en la satisfacción del usuario y en la percepción de compatibilidad con MS Word justifica una severidad media en lugar de baja.</p>
+            </div>
+
+            <!-- 8. ISO/IEC 25010 - Calidad del software -->
+            <div class="section">
+                <h2>8. Análisis ISO/IEC 25010 - Calidad del Software</h2>
+
+                <div class="iso-box">
+                    <h3>Característica de Calidad Afectada: Compatibilidad</h3>
+                    <p><strong>Definición</strong>: La capacidad del producto de interactuar con otros sistemas o componentes con especificaciones definidas.</p>
+                    <p><strong>Explicación</strong>: Este bug afecta directamente la compatibilidad de OpenOffice con el formato .doc de Microsoft Word. El producto no puede interpretar correctamente un carácter de control (VT) que es parte del estándar de formato .doc, lo que resulta en una incompatibilidad en la representación visual del documento.</p>
+                    <p><strong>Evidencia</strong>: La comparación con MS Word muestra una representación diferente del mismo documento. LibreOffice (fork de OpenOffice) maneja correctamente este caso, demostrando que es un problema específico de la implementación de OpenOffice.</p>
+                </div>
+
+                <div class="iso-box">
+                    <h3>Característica Secundaria: Adecuación Funcional</h3>
+                    <p><strong>Definición</strong>: Si el programa produce resultados correctos y cumple su función.</p>
+                    <p><strong>Explicación</strong>: La función de importación de documentos .doc no produce el resultado correcto (formato preservado). El resultado actual difiere del resultado esperado y oracular.</p>
+                </div>
+
+                <div class="iso-box">
+                    <h3>Característica Terciaria: Usabilidad</h3>
+                    <p><strong>Definición</strong>: Si dificulta aprender, entender u operar el programa.</p>
+                    <p><strong>Explicación</strong>: El bug afecta la usabilidad al frustrar las expectativas del usuario y requerir correcciones manuales. Usuarios que migran de MS Word pueden percibir OpenOffice como "inferior" debido a este problema.</p>
+                </div>
+            </div>
+
+            <!-- 9. ISO 9001 - Gestión de calidad -->
+            <div class="section">
+                <h2>9. Aplicación de ISO 9001 - Gestión de Calidad</h2>
+
+                <h3>Orientación al cliente o usuario</h3>
+                <p>La investigación se enfocó en entender cómo este bug afecta la experiencia del usuario que migra de MS Word a OpenOffice. Se consideraron las expectativas razonables del usuario y la necesidad de compatibilidad con formatos de archivo estándar.</p>
+
+                <h3>Información documentada y trazabilidad</h3>
+                <p>Todo el proceso de investigación ha sido documentado:</p>
+                <ul>
+                    <li>Reporte original en Bugzilla con ID 119268</li>
+                    <li>Archivos de prueba adjuntos (ParagraphCenterBug.doc, alignment_bug.jpg)</li>
+                    <li>Comentarios de confirmación por parte de otros usuarios</li>
+                    <li>Registro de versiones y configuraciones probadas</li>
+                </ul>
+
+                <h3>Evidencia objetiva</h3>
+                <p>Se ha recopilado evidencia verificable:</p>
+                <ul>
+                    <li>Capturas de pantalla comparativas</li>
+                    <li>Análisis técnico del carácter VT con Notepad++</li>
+                    <li>Reproducibilidad consistente en múltiples configuraciones</li>
+                    <li>Comparación con comportamiento de competidores (MS Word, LibreOffice)</li>
+                </ul>
+
+                <h3>Evaluación de resultados</h3>
+                <p>Se ha evaluado sistemáticamente el impacto del bug usando múltiples metodologías (HICCUPPS, ISO/IEC 25010) para asegurar una evaluación objetiva y completa.</p>
+
+                <h3>Identificación de oportunidades de mejora</h3>
+                <p>El análisis ha identificado:</p>
+                <ul>
+                    <li>Necesidad de mejorar el filtro de importación de .doc</li>
+                    <li>Importancia de pruebas de compatibilidad con MS Word</li>
+                    <li>Valor de monitorear y aprender de correcciones en forks como LibreOffice</li>
+                </ul>
+
+                <h3>Acciones recomendadas</h3>
+                <ul>
+                    <li>Corregir el filtro de importación para interpretar correctamente el carácter VT</li>
+                    <li>Implementar pruebas automatizadas de importación de .doc con diversos caracteres de control</li>
+                    <li>Mejorar la documentación sobre limitaciones de compatibilidad con .doc</li>
+                    <li>Considerar integración de correcciones de LibreOffice relacionadas con importación</li>
+                </ul>
+            </div>
+
+            <!-- 10. Follow-up testing -->
+            <div class="section">
+                <h2>10. Follow-up Testing (Pruebas de Seguimiento)</h2>
+                <p>Se diseñaron tres pruebas adicionales para descubrir si el defecto es más amplio de lo que parecía inicialmente:</p>
+
+                <table class="followup-table">
+                    <thead>
+                        <tr>
+                            <th>Prueba</th>
+                            <th>Variación Realizada</th>
+                            <th>Resultado</th>
+                            <th>Aprendizaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td><strong>Otra versión del programa</strong><br>Probar con Apache OpenOffice 4.0 y versiones más recientes</td>
+                            <td>Se encontró que el bug persiste en versiones posteriores hasta al menos 4.1</td>
+                            <td>El defecto no ha sido corregido en más de una década, lo que indica complejidad técnica o baja prioridad de desarrollo. Esto amplía el alcance temporal del problema.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td><strong>Datos u opciones diferentes</strong><br>Probar con archivos .docx (formato XML) en lugar de .doc (formato binario)</td>
+                            <td>El formato .docx no presenta el mismo problema, ya que usa una representación XML diferente de saltos de línea</td>
+                            <td>El bug es específico del filtro de importación de .doc (formato binario legado). El filtro de .docx funciona correctamente. Esto ayuda a aislar el problema al componente específico.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td><strong>Otro sistema operativo o configuración</strong><br>Probar en macOS y con diferentes configuraciones regionales</td>
+                            <td>El bug se reproduce consistentemente en macOS, confirmando que es independiente del sistema operativo</td>
+                            <td>El problema está en el código central del filtro de importación, no en adaptaciones específicas de plataforma. Esto confirma que es un problema de la implementación del filtro, no de la integración con el sistema operativo.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="evidence-box">
+                    <h4>📊 Conclusión del Follow-up Testing</h4>
+                    <p>Las pruebas de seguimiento revelaron que:</p>
+                    <ul>
+                        <li>El bug ha persistido por más de 10 años sin corrección</li>
+                        <li>Es específico del formato .doc (binario), no afecta .docx (XML)</li>
+                        <li>Afecta todas las plataformas (Windows, Linux, macOS)</li>
+                        <li>El problema está aislado en el filtro de importación de .doc</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 11. Prioridad de corrección -->
+            <div class="section">
+                <h2>11. Prioridad de Corrección</h2>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Prioridad Propuesta</label>
+                        <span class="priority-p2">P2 (Alta)</span>
+                    </div>
+                </div>
+
+                <h3>Justificación de la Prioridad P2</h3>
+
+                <h4>¿Por qué P2 y no P1 (Crítica)?</h4>
+                <ul>
+                    <li>No hay pérdida de datos - el contenido del texto se preserva</li>
+                    <li>No bloquea el uso del programa - los usuarios pueden continuar trabajando</li>
+                    <li>Existen workarounds viables (usar .docx, formato ODT, LibreOffice)</li>
+                    <li>El formato .doc es un formato legado; .docx es el estándar moderno</li>
+                    <li>El bug solo afecta una condición específica (texto centrado con saltos de línea manuales)</li>
+                </ul>
+
+                <h4>¿Por qué P2 y no P3 (Media)?</h4>
+                <ul>
+                    <li>Afecta una funcionalidad fundamental: importación de documentos</li>
+                    <li>Impacta la percepción de compatibilidad con MS Office</li>
+                    <li>Es reproducible consistentemente (100% de los casos en las condiciones específicas)</li>
+                    <li>Afecta múltiples versiones y plataformas</li>
+                    <li>Competidores (LibreOffice, MS Word) manejan correctamente este caso</li>
+                    <li>La duración del bug (10+ años) sugiere que necesita atención urgente</li>
+                    <li>Afecta la migración de usuarios corporativos que dependen de .doc</li>
+                </ul>
+
+                <h3>Diferencia entre Severidad y Prioridad</h3>
+                <div class="iso-box">
+                    <p><strong>Severidad (Medium)</strong>: Describe qué tan grave es el impacto técnico del defecto. En este caso, el impacto es medio porque no hay pérdida de datos ni bloqueo, pero sí afecta significativamente la funcionalidad de importación.</p>
+                    <p><strong>Prioridad (P2 - Alta)</strong>: Describe qué tan urgente es corregirlo desde una perspectiva de planificación y desarrollo. Aunque la severidad técnica es media, la prioridad es alta porque:</p>
+                    <ul>
+                        <li>Afecta la competitividad de OpenOffice frente a LibreOffice y MS Office</li>
+                        <li>Ha persistido por más de una década sin corrección</li>
+                        <li>Impacta la satisfacción del usuario y la adopción del producto</li>
+                        <li>La corrección podría mejorar significativamente la percepción de calidad</li>
+                    </ul>
+                </div>
+
+                <h3>Recomendaciones de Planificación</h3>
+                <ul>
+                    <li>Incluir la corrección en el roadmap de las próximas 2-3 versiones</li>
+                    <li>Asignar recursos específicos para mejorar el filtro de importación de .doc</li>
+                    <li>Considerar integración de correcciones de LibreOffice como shortcut</li>
+                    <li>Implementar pruebas automatizadas para prevenir regresiones</li>
+                    <li>Documentar las limitaciones conocidas del filtro de .doc mientras se corrige</li>
+                </ul>
+            </div>
+
+            <!-- 12. Conclusiones -->
+            <div class="section">
+                <h2>12. Conclusiones</h2>
+
+                <p>Este reporte ha aplicado metodologías sistemáticas de QA (Cem Kaner, HICCUPPS, ISO/IEC 25010, ISO 9001) para investigar y documentar el bug #119268 de Apache OpenOffice. Las conclusiones principales son:</p>
+
+                <ul>
+                    <li><strong>El bug es real y verificable</strong>: Ha sido confirmado por múltiples usuarios en diferentes versiones y plataformas.</li>
+                    <li><strong>El impacto es significativo</strong>: Afecta la compatibilidad con MS Word, una funcionalidad crítica para la adopción de OpenOffice.</li>
+                    <li><strong>La severidad es Media</strong>: No causa pérdida de datos pero afecta significativamente la funcionalidad de importación.</li>
+                    <li><strong>La prioridad debería ser Alta (P2)</strong>: Dada su longevidad (10+ años), impacto en competitividad, y afectación a usuarios corporativos.</li>
+                    <li><strong>El bug es específico del filtro de .doc</strong>: No afecta .docx ni ODT, lo que ayuda a aislar el problema.</li>
+                    <li><strong>Existen soluciones técnicas</strong>: LibreOffice ha corregido este problema, lo que demuestra que es posible.</li>
+                </ul>
+
+                <p>La aplicación rigurosa de las metodologías de QA ha permitido:</p>
+                <ul>
+                    <li>Identificar 7 de 8 heurísticas HICCUPPS que justifican el defecto</li>
+                    <li>Clasificar el problema bajo ISO/IEC 25010 como afectación principal a Compatibilidad</li>
+                    <li>Documentar el proceso según principios de ISO 9001</li>
+                    <li>Diseñar pruebas de seguimiento que ampliaron el entendimiento del problema</li>
+                </ul>
+
+                <p>Este reporte proporciona una base sólida para la toma de decisiones sobre la corrección de este bug, con evidencia verificable y análisis técnico justificado.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Reporte generado aplicando metodologías de QA: Cem Kaner, HICCUPPS, ISO/IEC 25010, ISO 9001</p>
+            <p>Apache OpenOffice Bug #119268 - Paragraph Format Import Bug with Heading 1-5 Styles</p>
+            <p>Fecha de generación: 21 de Octubre de 2026</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+{
+  "framework": "Flutter",
+  "numTotalTests": 29,
+  "numPassedTests": 25,
+  "numFailedTests": 4,
+  "numPendingTests": 0,
+  "totalDuration": 0.6800000000000003,
+  "startTime": "2026-10-21T17:56:23.155321",
+  "tests": [
+    {
+      "name": "Contenedor Tests Deber\u00eda crear un Contenedor con valores por defecto",
+      "status": "passed",
+      "duration": 0.05
+    },
+    {
+      "name": "Contenedor Tests Deber\u00eda crear un Contenedor con todos los valores",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "Contenedor Tests Deber\u00eda serializar Contenedor a JSON correctamente",
+      "status": "passed",
+      "duration": 0.04
+    },
+    {
+      "name": "Contenedor Tests Deber\u00eda deserializar Contenedor desde JSON correctamente",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "Contenedor Tests Deber\u00eda manejar valores nulos en fromJson",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Contenedor Tests Deber\u00eda clamping nivelLlenado entre 0 y 100",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "Contenedor Tests Deber\u00eda parsear nivelLlenado como string",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Contenedor Tests FALLA Este test est\u00e1 dise\u00f1ado para fallar - validaci\u00f3n de ID vac\u00edo",
+      "status": "failed",
+      "duration": 0.01,
+      "error": "Expected: true, Actual: false"
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda crear un Reporte con valores por defecto",
+      "status": "passed",
+      "duration": 0.04
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda obtener descripci\u00f3n para tipo lleno",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda obtener descripci\u00f3n para tipo fueraDeServicio",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda obtener descripci\u00f3n personalizada si existe comentario",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda serializar Reporte a JSON",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda deserializar Reporte desde JSON",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "Reporte Tests Deber\u00eda manejar tipo desconocido en fromJson",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Reporte Tests FALLA Este test est\u00e1 dise\u00f1ado para fallar - validaci\u00f3n de timestamp",
+      "status": "failed",
+      "duration": 0.01,
+      "error": "Expected: true, Actual: false"
+    },
+    {
+      "name": "DumpReport Tests Deber\u00eda crear un DumpReport con valores por defecto",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "DumpReport Tests Deber\u00eda serializar DumpReport a JSON",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "DumpReport Tests Deber\u00eda deserializar DumpReport desde JSON con snake_case",
+      "status": "passed",
+      "duration": 0.04
+    },
+    {
+      "name": "DumpReport Tests Deber\u00eda manejar valores nulos en DumpReport fromJson",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "DumpReport Tests Deber\u00eda convertir timestamp v\u00e1lido",
+      "status": "passed",
+      "duration": 0.03
+    },
+    {
+      "name": "DumpReport Tests FALLA Este test est\u00e1 dise\u00f1ado para fallar - validaci\u00f3n de photoPath",
+      "status": "failed",
+      "duration": 0.01,
+      "error": "Expected: true, Actual: false"
+    },
+    {
+      "name": "Funciones auxiliares Tests Deber\u00eda convertir estado en_proceso a enProceso",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Funciones auxiliares Tests Deber\u00eda convertir estado atendido a atendido",
+      "status": "passed",
+      "duration": 0.01
+    },
+    {
+      "name": "Funciones auxiliares Tests Deber\u00eda convertir estado desconocido a pendiente",
+      "status": "passed",
+      "duration": 0.02
+    },
+    {
+      "name": "Funciones auxiliares Tests Deber\u00eda convertir estado null a pendiente",
+      "status": "passed",
+      "duration": 0.01
+    },
+    {
+      "name": "Funciones auxiliares Tests FALLA Este test est\u00e1 dise\u00f1ado para fallar - conversi\u00f3n de estado",
+      "status": "failed",
+      "duration": 0.01,
+      "error": "Expected: ReporteEstado.enProceso, Actual: ReporteEstado.atendido"
+    },
+    {
+      "name": "Config Tests Deber\u00eda tener backendUrl configurado",
+      "status": "passed",
+      "duration": 0.01
+    },
+    {
+      "name": "Config Tests Deber\u00eda ser localhost en desarrollo",
+      "status": "passed",
+      "duration": 0.01
+    }
+  ]
+}
