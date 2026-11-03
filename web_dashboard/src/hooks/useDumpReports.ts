@@ -9,12 +9,16 @@ import {
 } from "@/lib/supabase";
 
 async function attachPhotoUrls(reports: DumpReportRow[]): Promise<DumpReportRow[]> {
-  return Promise.all(
-    reports.map(async (report) => ({
-      ...report,
-      photo_url: await getDumpReportPhotoUrl(report.photo_path),
-    }))
-  );
+  // Optimización: carga paralela de todas las URLs sin bloquear
+  const urlPromises = reports.map(async (report) => {
+    try {
+      const photo_url = await getDumpReportPhotoUrl(report.photo_path);
+      return { ...report, photo_url };
+    } catch {
+      return { ...report, photo_url: null };
+    }
+  });
+  return Promise.all(urlPromises);
 }
 
 function normalizeReport(record: Record<string, unknown>): DumpReportRow | null {

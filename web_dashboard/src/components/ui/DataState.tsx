@@ -13,6 +13,8 @@ type DataStateProps = {
   onRetry?: () => void;
   onEmptyAction?: () => void;
   emptyActionLabel?: string;
+  /** Custom skeleton JSX to show while loading instead of the default spinner */
+  skeleton?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -27,9 +29,13 @@ export function DataState({
   onRetry,
   onEmptyAction,
   emptyActionLabel,
+  skeleton,
   children,
 }: DataStateProps) {
   if (loading) {
+    if (skeleton) {
+      return <>{skeleton}</>;
+    }
     return <LoadingState message={loadingMessage} />;
   }
 

@@ -418,3 +418,4 @@ class TestEmailValidation:
             contrasena="password123"
         )
         assert "@" in user.correo
+

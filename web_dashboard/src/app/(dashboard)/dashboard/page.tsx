@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { DataState, PageHeader } from "@/components/ui";
+import { PageHeader, SkeletonDashboardPage } from "@/components/ui";
 import { useContainers } from "@/hooks/useContainers";
 import { useDumpReports } from "@/hooks/useDumpReports";
 const rutasRecoleccion = [
@@ -110,112 +110,120 @@ export default function DashboardPage() {
         title="Panel de Control"
         description="Resumen operativo del sistema de contenedores urbanos"
       />
-      <DataState
-        loading={loading}
-        error={error}
-        onRetry={() => {
-          reloadContainers();
-          reloadReports();
-        }}
-        loadingMessage="Cargando panel de control..."
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
-          {stats.map((stat, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center`}
-                >
-                  {"icon" in stat && stat.icon ? (
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={stat.icon} />
-                    </svg>
-                  ) : null}
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
-              <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
-            </div>
-          ))}
+      {error ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <p className="text-red-800 font-medium">{error}</p>
+          <button
+            onClick={() => {
+              reloadContainers();
+              reloadReports();
+            }}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Reintentar
+          </button>
         </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-8">
-          <div className="bg-white rounded-2xl shadow-sm p-6 xl:col-span-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">Plan operativo de recoleccion</h2>
-                <p className="text-sm text-gray-400 mt-1">Seguimiento del turno actual por ruta y prioridad</p>
-              </div>
-              <span className="text-xs px-3 py-1.5 rounded-full bg-[#2D6A4F]/10 text-[#2D6A4F] font-semibold">
-                {rutasActivas} rutas activas
-              </span>
-            </div>
-            <div className="space-y-4">
-              {rutasRecoleccion.map((ruta) => (
-                <div
-                  key={ruta.nombre}
-                  className="border border-gray-100 rounded-2xl p-4 hover:border-[#2D6A4F]/30 transition"
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-3">
-                    <div>
-                      <p className="font-semibold text-gray-800">{ruta.nombre}</p>
-                      <p className="text-xs text-gray-400">
-                        {ruta.zona} &bull; {ruta.equipo} &bull; Salida {ruta.hora}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          ruta.prioridad === "Alta"
-                            ? "bg-red-100 text-red-700"
-                            : ruta.prioridad === "Media"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        {ruta.prioridad}
-                      </span>
-                      <span className="text-xs text-gray-400">{ruta.contenedores} contenedores</span>
+      ) : loading ? (
+        <SkeletonDashboardPage />
+      ) : (
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
+              {stats.map((stat, i) => (
+                <div key={i} className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={`w-12 h-12 bg-gradient-to-br ${stat.color} rounded-xl flex items-center justify-center`}
+                    >
+                      {"icon" in stat && stat.icon ? (
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={stat.icon} />
+                        </svg>
+                      ) : null}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className={`${ruta.avance >= 70 ? "bg-[#2D6A4F]" : ruta.avance > 0 ? "bg-yellow-500" : "bg-gray-300"} h-2.5 rounded-full`}
-                        style={{ width: `${ruta.avance}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-semibold text-gray-500 w-10 text-right">{ruta.avance}%</span>
-                  </div>
+                  <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                  <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-[#2D6A4F] to-[#1a4a35] rounded-2xl shadow-sm p-4 text-white self-start w-full max-w-xs xl:max-w-none">
-            <p className="text-xs text-white/70">Resumen del turno</p>
-            <h2 className="text-lg font-bold mt-1">Operacion diaria</h2>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              <div className="bg-white/10 rounded-lg p-3">
-                <p className="text-xl font-bold">{rutasRecoleccion.length}</p>
-                <p className="text-[11px] text-white/70">Rutas</p>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-8">
+              <div className="bg-white rounded-2xl shadow-sm p-6 xl:col-span-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-800">Plan operativo de recoleccion</h2>
+                    <p className="text-sm text-gray-400 mt-1">Seguimiento del turno actual por ruta y prioridad</p>
+                  </div>
+                  <span className="text-xs px-3 py-1.5 rounded-full bg-[#2D6A4F]/10 text-[#2D6A4F] font-semibold">
+                    {rutasActivas} rutas activas
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {rutasRecoleccion.map((ruta) => (
+                    <div
+                      key={ruta.nombre}
+                      className="border border-gray-100 rounded-2xl p-4 hover:border-[#2D6A4F]/30 transition"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-3">
+                        <div>
+                          <p className="font-semibold text-gray-800">{ruta.nombre}</p>
+                          <p className="text-xs text-gray-400">
+                            {ruta.zona} &bull; {ruta.equipo} &bull; Salida {ruta.hora}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              ruta.prioridad === "Alta"
+                                ? "bg-red-100 text-red-700"
+                                : ruta.prioridad === "Media"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {ruta.prioridad}
+                          </span>
+                          <span className="text-xs text-gray-400">{ruta.contenedores} contenedores</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className={`${ruta.avance >= 70 ? "bg-[#2D6A4F]" : ruta.avance > 0 ? "bg-yellow-500" : "bg-gray-300"} h-2.5 rounded-full`}
+                            style={{ width: `${ruta.avance}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-500 w-10 text-right">{ruta.avance}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="bg-white/10 rounded-lg p-3">
-                <p className="text-xl font-bold">{counts.total}</p>
-                <p className="text-[11px] text-white/70">Contenedores</p>
+
+              <div className="bg-gradient-to-br from-[#2D6A4F] to-[#1a4a35] rounded-2xl shadow-sm p-4 text-white self-start w-full max-w-xs xl:max-w-none">
+                <p className="text-xs text-white/70">Resumen del turno</p>
+                <h2 className="text-lg font-bold mt-1">Operacion diaria</h2>
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-xl font-bold">{rutasRecoleccion.length}</p>
+                    <p className="text-[11px] text-white/70">Rutas</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-xl font-bold">{counts.total}</p>
+                    <p className="text-[11px] text-white/70">Contenedores</p>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-white/70">Sensores activos</span>
+                    <span className="font-semibold">{SENSORES_ACTIVOS}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-white/70">Reportes pendientes</span>
+                    <span className="font-semibold">{reportesPendientes}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/70">Sensores activos</span>
-                <span className="font-semibold">{SENSORES_ACTIVOS}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/70">Reportes pendientes</span>
-                <span className="font-semibold">{reportesPendientes}</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -259,20 +267,21 @@ export default function DashboardPage() {
 
         <div className="bg-white rounded-2xl shadow-sm p-6 mt-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Distribucion por Tipo</h2>
-          <div className="flex items-end gap-8 h-48">
-            {chartData.map((d, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-                <span className="text-sm font-bold text-gray-700 mb-2">{d.value}</span>
-                <div
-                  className={`w-full rounded-t-lg ${d.color} transition-all duration-500`}
-                  style={{ height: `${(d.value / chartMax) * 100}%`, minHeight: d.value > 0 ? "8px" : "0" }}
-                />
-                <span className="text-xs text-gray-500 mt-2">{d.label}</span>
-              </div>
-            ))}
-          </div>
+            <div className="flex items-end gap-8 h-48">
+              {chartData.map((d, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                  <span className="text-sm font-bold text-gray-700 mb-2">{d.value}</span>
+                  <div
+                    className={`w-full rounded-t-lg ${d.color} transition-all duration-500`}
+                    style={{ height: `${(d.value / chartMax) * 100}%`, minHeight: d.value > 0 ? "8px" : "0" }}
+                  />
+                  <span className="text-xs text-gray-500 mt-2">{d.label}</span>
+                </div>
+              ))}
+            </div>
         </div>
-      </DataState>
+      </>
+      )}
     </>
   );
 }

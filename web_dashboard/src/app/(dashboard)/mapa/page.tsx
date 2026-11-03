@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DataState, PageHeader } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
+import { Shimmer } from "@/components/ui/Skeleton";
 import { useContainers } from "@/hooks/useContainers";
 import { useDumpReports } from "@/hooks/useDumpReports";
 import { getSession } from "@/lib/auth";
@@ -628,128 +629,173 @@ export default function MapaPage() {
         }
       />
 
-      <DataState
-        loading={loading}
-        error={error}
-        onRetry={reload}
-        loadingMessage="Cargando contenedores..."
-      >
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#2D6A4F]">
-            <p className="text-2xl font-bold text-gray-800">
-              {counts.total}
-            </p>
-            <p className="text-sm text-gray-500">Total contenedores</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
-            <p className="text-2xl font-bold text-gray-800">{misContenedores.length}</p>
-            <p className="text-sm text-gray-500">Mis registros</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
-            <p className="text-2xl font-bold text-gray-800">{counts.verde}</p>
-            <p className="text-sm text-gray-500">Verdes</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-500">
-            <p className="text-2xl font-bold text-gray-800">{counts.naranja}</p>
-            <p className="text-sm text-gray-500">Naranjas</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500">
-            <p className="text-2xl font-bold text-gray-800">{counts.soterrado}</p>
-            <p className="text-sm text-gray-500">Soterrados</p>
-          </div>
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 mb-4">
+          {error}{" "}
+          <button
+            type="button"
+            onClick={reload}
+            className="underline font-medium"
+          >
+            Reintentar
+          </button>
         </div>
+      ) : null}
 
-        <div className="flex flex-wrap gap-2 mb-4">
-          {filtros.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFiltro(f.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition border ${
-                filtro === f.id
-                  ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              {f.id !== "todos" && (
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: f.color }}
-                />
-              )}
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mb-4 rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-gray-800">
-                Mapa de calor · Vertederos ilegales
-              </h2>
-              <p className="mt-1 text-sm text-gray-600 max-w-3xl">
-                Visualiza las zonas con mayor concentracion y reincidencia de reportes para
-                priorizar la atencion de incidentes segun frecuencia y ubicacion.
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        {loading ? (
+          <>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="bg-white rounded-xl p-4 shadow-sm overflow-hidden">
+                <div className="relative">
+                  <div className="h-7 bg-gray-200 rounded w-10 mb-1" />
+                  <div className="h-4 bg-gray-200 rounded w-24" />
+                  <Shimmer />
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#2D6A4F]">
+              <p className="text-2xl font-bold text-gray-800">
+                {counts.total}
               </p>
+              <p className="text-sm text-gray-500">Total contenedores</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowHeatmap((value) => !value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                showHeatmap
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-white border border-orange-300 text-orange-800 hover:bg-orange-100"
-              }`}
-            >
-              {showHeatmap ? "Ocultar mapa de calor" : "Mostrar mapa de calor"}
-            </button>
-          </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
+              <p className="text-2xl font-bold text-gray-800">{misContenedores.length}</p>
+              <p className="text-sm text-gray-500">Mis registros</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+              <p className="text-2xl font-bold text-gray-800">{counts.verde}</p>
+              <p className="text-sm text-gray-500">Verdes</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-orange-500">
+              <p className="text-2xl font-bold text-gray-800">{counts.naranja}</p>
+              <p className="text-sm text-gray-500">Naranjas</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500">
+              <p className="text-2xl font-bold text-gray-800">{counts.soterrado}</p>
+              <p className="text-sm text-gray-500">Soterrados</p>
+            </div>
+          </>
+        )}
+      </div>
 
-          {showHeatmap ? (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap gap-2 mb-4">
+        {loading ? (
+          <>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-9 w-24 bg-gray-200 rounded-full overflow-hidden relative">
+                <Shimmer />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            {filtros.map((f) => (
               <button
+                key={f.id}
                 type="button"
-                onClick={() => setHeatmapScope("activos")}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-                  heatmapScope === "activos"
-                    ? "bg-orange-600 text-white border-orange-600"
+                onClick={() => setFiltro(f.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition border ${
+                  filtro === f.id
+                    ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
                     : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                 }`}
               >
-                Solo activos ({reportStats.activos})
+                {f.id !== "todos" && (
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: f.color }}
+                  />
+                )}
+                {f.label}
               </button>
-              <button
-                type="button"
-                onClick={() => setHeatmapScope("todos")}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-                  heatmapScope === "todos"
-                    ? "bg-orange-600 text-white border-orange-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                Todos los reportes ({reportStats.total})
-              </button>
-              <span className="text-xs text-gray-500">
-                {heatmapClusters.length} zona{heatmapClusters.length === 1 ? "" : "s"} ·{" "}
-                {heatmapRenderPoints.length} reporte
-                {heatmapRenderPoints.length === 1 ? "" : "s"}
-              </span>
-            </div>
-          ) : null}
+            ))}
+          </>
+        )}
+      </div>
 
-          {reportsError ? (
-            <p className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {reportsError}{" "}
-              <button
-                type="button"
-                onClick={reloadReports}
-                className="underline font-medium"
-              >
-                Reintentar
-              </button>
-            </p>
-          ) : null}
+        <div className="mb-4 rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-50 to-red-50 p-4 overflow-hidden">
+          {loading ? (
+            <div className="relative">
+              <div className="h-5 bg-gray-200 rounded w-64 mb-2" />
+              <div className="h-4 bg-gray-200 rounded w-96" />
+              <Shimmer />
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-gray-800">
+                    Mapa de calor · Vertederos ilegales
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-600 max-w-3xl">
+                    Visualiza las zonas con mayor concentracion y reincidencia de reportes para
+                    priorizar la atencion de incidentes segun frecuencia y ubicacion.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowHeatmap((value) => !value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                    showHeatmap
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "bg-white border border-orange-300 text-orange-800 hover:bg-orange-100"
+                  }`}
+                >
+                  {showHeatmap ? "Ocultar mapa de calor" : "Mostrar mapa de calor"}
+                </button>
+              </div>
+
+              {showHeatmap ? (
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setHeatmapScope("activos")}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                      heatmapScope === "activos"
+                        ? "bg-orange-600 text-white border-orange-600"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    Solo activos ({reportStats.activos})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeatmapScope("todos")}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
+                      heatmapScope === "todos"
+                        ? "bg-orange-600 text-white border-orange-600"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    Todos los reportes ({reportStats.total})
+                  </button>
+                  <span className="text-xs text-gray-500">
+                    {heatmapClusters.length} zona{heatmapClusters.length === 1 ? "" : "s"} ·{" "}
+                    {heatmapRenderPoints.length} reporte
+                    {heatmapRenderPoints.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+              ) : null}
+
+              {reportsError ? (
+                <p className="mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {reportsError}{" "}
+                  <button
+                    type="button"
+                    onClick={reloadReports}
+                    className="underline font-medium"
+                  >
+                    Reintentar
+                  </button>
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
 
         {containers.length === 0 && mode === "view" ? (
@@ -789,71 +835,88 @@ export default function MapaPage() {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-4 border border-blue-100">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Mis ubicaciones registradas ({misContenedores.length})
-                </h2>
-              </div>
-
-              {misContenedores.length === 0 ? (
-                <p className="text-sm text-gray-500 py-4 text-center border border-dashed border-gray-200 rounded-xl">
-                  Aun no registraste ubicaciones. Usa <strong>+ Nuevo contenedor</strong> para agregar la primera.
-                </p>
-              ) : (
-                <div className="space-y-2 max-h-[280px] overflow-y-auto">
-                  {misContenedores.map((c) => (
-                    <div
-                      key={c.id}
-                      className={`rounded-xl border p-3 ${
-                        selectedId === c.id
-                          ? "border-[#2D6A4F] bg-green-50"
-                          : "border-gray-200"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <button
-                          type="button"
-                          onClick={() => startEdit(c)}
-                          className="flex-1 text-left"
-                        >
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-gray-800">#{c.id}</span>
-                            <span
-                              className="text-xs px-2 py-1 rounded-full text-white font-medium"
-                              style={{ backgroundColor: containerColor(c.tipo) }}
-                            >
-                              {containerLabel(c.tipo)}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formatCoord(c.latitude)}, {formatCoord(c.longitude)}
-                          </p>
-                          {c.nombre ? (
-                            <p className="text-xs text-gray-400 mt-1">{c.nombre}</p>
-                          ) : null}
-                        </button>
-
-                        <div className="flex gap-2 sm:flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(c)}
-                            className="px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => requestDelete(c)}
-                            className="px-3 py-2 text-sm border border-red-200 rounded-lg text-red-700 hover:bg-red-50"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
+            <div className="bg-white rounded-2xl shadow-sm p-4 border border-blue-100 overflow-hidden">
+              {loading ? (
+                <div className="relative">
+                  <div className="h-5 bg-gray-200 rounded w-56 mb-3" />
+                  <div className="space-y-2">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="rounded-xl border border-gray-100 p-3">
+                        <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
+                        <div className="h-3 bg-gray-200 rounded w-48" />
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <Shimmer />
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      Mis ubicaciones registradas ({misContenedores.length})
+                    </h2>
+                  </div>
+
+                  {misContenedores.length === 0 ? (
+                    <p className="text-sm text-gray-500 py-4 text-center border border-dashed border-gray-200 rounded-xl">
+                      Aun no registraste ubicaciones. Usa <strong>+ Nuevo contenedor</strong> para agregar la primera.
+                    </p>
+                  ) : (
+                    <div className="space-y-2 max-h-[280px] overflow-y-auto">
+                      {misContenedores.map((c) => (
+                        <div
+                          key={c.id}
+                          className={`rounded-xl border p-3 ${
+                            selectedId === c.id
+                              ? "border-[#2D6A4F] bg-green-50"
+                              : "border-gray-200"
+                          }`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(c)}
+                              className="flex-1 text-left"
+                            >
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-gray-800">#{c.id}</span>
+                                <span
+                                  className="text-xs px-2 py-1 rounded-full text-white font-medium"
+                                  style={{ backgroundColor: containerColor(c.tipo) }}
+                                >
+                                  {containerLabel(c.tipo)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {formatCoord(c.latitude)}, {formatCoord(c.longitude)}
+                              </p>
+                              {c.nombre ? (
+                                <p className="text-xs text-gray-400 mt-1">{c.nombre}</p>
+                              ) : null}
+                            </button>
+
+                            <div className="flex gap-2 sm:flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(c)}
+                                className="px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => requestDelete(c)}
+                                className="px-3 py-2 text-sm border border-red-200 rounded-lg text-red-700 hover:bg-red-50"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -867,87 +930,108 @@ export default function MapaPage() {
             {selectedContainerPanel}
             {formPanel}
 
-            <div className="bg-white rounded-2xl shadow-sm p-4">
-              <h2 className="text-lg font-semibold text-gray-700 mb-3">
-                Lista ({filtro === "todos" && !search ? counts.total : filtrados.length})
-              </h2>
-              <input
-                type="text"
-                placeholder="Buscar por #ID, nombre o tipo..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full mb-3 px-3 py-2 border border-gray-200 rounded-lg text-sm"
-              />
-              <div className="max-h-[420px] overflow-y-auto space-y-2">
-                {filtrados.length === 0 ? (
-                  <p className="text-sm text-gray-500 py-4 text-center">
-                    No hay contenedores con este filtro.
-                  </p>
-                ) : (
-                  filtrados.map((c) => {
-                    const esMio = isMyContainer(c, sessionEmail);
-                    return (
-                      <div
-                        key={c.id}
-                        className={`rounded-xl border transition hover:shadow-sm ${
-                          selectedId === c.id
-                            ? "border-[#2D6A4F] bg-green-50"
-                            : "border-gray-200"
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => selectContainerFromMap(c)}
-                          className="w-full text-left p-3"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-semibold text-gray-800">#{c.id}</span>
-                            <div className="flex items-center gap-1">
-                              {esMio ? (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
-                                  Mio
-                                </span>
+            <div className="bg-white rounded-2xl shadow-sm p-4 overflow-hidden">
+              {loading ? (
+                <div className="relative">
+                  <div className="h-5 bg-gray-200 rounded w-24 mb-3" />
+                  <div className="h-9 bg-gray-200 rounded-lg w-full mb-3" />
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="rounded-xl border border-gray-100 p-3">
+                        <div className="flex justify-between mb-1">
+                          <div className="h-4 bg-gray-200 rounded w-12" />
+                          <div className="h-5 bg-gray-200 rounded-full w-16" />
+                        </div>
+                        <div className="h-3 bg-gray-200 rounded w-40 mb-1" />
+                        <div className="h-3 bg-gray-200 rounded w-28" />
+                      </div>
+                    ))}
+                  </div>
+                  <Shimmer />
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-lg font-semibold text-gray-700 mb-3">
+                    Lista de Contenedores ({filtro === "todos" && !search ? counts.total : filtrados.length})
+                  </h2>
+                  <input
+                    type="text"
+                    placeholder="Buscar por #ID, nombre o tipo..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full mb-3 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                  />
+                  <div className="max-h-[420px] overflow-y-auto space-y-2">
+                    {filtrados.length === 0 ? (
+                      <p className="text-sm text-gray-500 py-4 text-center">
+                        No hay contenedores con este filtro.
+                      </p>
+                    ) : (
+                      filtrados.map((c) => {
+                        const esMio = isMyContainer(c, sessionEmail);
+                        return (
+                          <div
+                            key={c.id}
+                            className={`rounded-xl border transition hover:shadow-sm ${
+                              selectedId === c.id
+                                ? "border-[#2D6A4F] bg-green-50"
+                                : "border-gray-200"
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => selectContainerFromMap(c)}
+                              className="w-full text-left p-3"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-semibold text-gray-800">#{c.id}</span>
+                                <div className="flex items-center gap-1">
+                                  {esMio ? (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                      Mio
+                                    </span>
+                                  ) : null}
+                                  <span
+                                    className="text-xs px-2 py-1 rounded-full text-white font-medium"
+                                    style={{ backgroundColor: containerColor(c.tipo) }}
+                                  >
+                                    {containerLabel(c.tipo)}
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {formatCoord(c.latitude)}, {formatCoord(c.longitude)}
+                              </p>
+                              {c.nombre ? (
+                                <p className="text-xs text-gray-400 mt-1">{c.nombre}</p>
                               ) : null}
-                              <span
-                                className="text-xs px-2 py-1 rounded-full text-white font-medium"
-                                style={{ backgroundColor: containerColor(c.tipo) }}
+                            </button>
+                            <div className="flex gap-2 px-3 pb-3">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(c)}
+                                className="flex-1 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
                               >
-                                {containerLabel(c.tipo)}
-                              </span>
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => requestDelete(c)}
+                                className="flex-1 py-1.5 text-xs border border-red-200 rounded-lg text-red-700 hover:bg-red-50"
+                              >
+                                Eliminar
+                              </button>
                             </div>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formatCoord(c.latitude)}, {formatCoord(c.longitude)}
-                          </p>
-                          {c.nombre ? (
-                            <p className="text-xs text-gray-400 mt-1">{c.nombre}</p>
-                          ) : null}
-                        </button>
-                        <div className="flex gap-2 px-3 pb-3">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(c)}
-                            className="flex-1 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => requestDelete(c)}
-                            className="flex-1 py-1.5 text-xs border border-red-200 rounded-lg text-red-700 hover:bg-red-50"
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
-      </DataState>
     </>
   );
 }

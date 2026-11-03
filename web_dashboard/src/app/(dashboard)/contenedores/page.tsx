@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DataState, EmptyState, PageHeader } from "@/components/ui";
+import { DataState, EmptyState, PageHeader, SkeletonListItem } from "@/components/ui";
 import { useContainers } from "@/hooks/useContainers";
 import { matchesContainerSearch } from "@/lib/containerSearch";
 import { CapacityBadge } from "@/components/containers/CapacityBadge";
@@ -48,13 +48,37 @@ export default function ContenedoresPage() {
         title="Contenedores"
         description="Consulta el listado de contenedores registrados"
       />
-      <DataState
-        loading={loading}
-        error={error}
-        onRetry={reload}
-        loadingMessage="Cargando contenedores..."
-      >
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      {error ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <p className="text-red-800 font-medium">{error}</p>
+          <button
+            onClick={reload}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm p-5 overflow-hidden">
+                <div className="relative">
+                  <div className="h-8 bg-gray-200 rounded w-16 mb-2" />
+                  <div className="h-4 bg-gray-200 rounded w-20" />
+                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="h-12 bg-gray-200 rounded mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => <SkeletonListItem key={i} />)}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-[#2D6A4F]">
             <p className="text-3xl font-bold text-gray-800">{counts.total}</p>
             <p className="text-sm text-gray-500 mt-1">Total</p>
@@ -192,7 +216,8 @@ export default function ContenedoresPage() {
           </div>
           </>
         )}
-      </DataState>
+        </>
+      )}
     </>
   );
 }

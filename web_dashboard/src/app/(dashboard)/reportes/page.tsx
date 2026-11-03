@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { DataState, EmptyState, PageHeader } from "@/components/ui";
+import { DataState, EmptyState, PageHeader, SkeletonListItem } from "@/components/ui";
 import { useDumpReports } from "@/hooks/useDumpReports";
 import { DumpReportRow, updateDumpReportEstado } from "@/lib/supabase";
 
@@ -122,13 +122,23 @@ export default function ReportesPage() {
         title="Reportes de Vertederos"
         description="Reportes ciudadanos enviados desde la app movil con foto y ubicacion"
       />
-      <DataState
-        loading={loading}
-        error={error}
-        onRetry={reload}
-        loadingMessage="Cargando reportes..."
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {error ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <p className="text-red-800 font-medium">{error}</p>
+          <button
+            onClick={reload}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => <SkeletonListItem key={i} />)}
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-yellow-500">
             <p className="text-3xl font-bold text-gray-800">{pendientes}</p>
             <p className="text-sm text-gray-500 mt-1">Pendientes</p>
@@ -364,9 +374,10 @@ export default function ReportesPage() {
             </div>
           </div>
         </div>
-      </DataState>
+        </>
+        )}
 
-      {selectedPhoto ? (
+        {selectedPhoto ? (
         <div
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
           onClick={() => setSelectedPhoto(null)}

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { CapacityBadge } from "@/components/containers/CapacityBadge";
-import { DataState, EmptyState, PageHeader } from "@/components/ui";
+import { DataState, EmptyState, PageHeader, SkeletonListItem } from "@/components/ui";
 import { useContainers } from "@/hooks/useContainers";
 import {
   CAPACITY_ALERT_THRESHOLD,
@@ -21,13 +21,32 @@ export default function AlertasPage() {
         title="Alertas de capacidad"
         description={`Contenedores al ${CAPACITY_ALERT_THRESHOLD}% o mas de su capacidad, o marcados como llenos`}
       />
-      <DataState
-        loading={loading}
-        error={error}
-        onRetry={reload}
-        loadingMessage="Cargando alertas..."
-      >
-        <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4">
+      {error ? (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
+          <p className="text-red-800 font-medium">{error}</p>
+          <button
+            onClick={reload}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : loading ? (
+        <>
+          <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 overflow-hidden">
+            <div className="relative">
+              <div className="h-10 bg-orange-200 rounded w-16 mb-2" />
+              <div className="h-4 bg-orange-200 rounded w-48" />
+              <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-orange-100 to-transparent" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => <SkeletonListItem key={i} />)}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4">
           <p className="text-3xl font-bold text-orange-800">{alertas.length}</p>
           <p className="text-sm text-orange-700 mt-1">
             Contenedor{alertas.length === 1 ? "" : "es"} requieren atencion prioritaria
@@ -94,7 +113,8 @@ export default function AlertasPage() {
             ))}
           </div>
         )}
-      </DataState>
+        </>
+        )}
     </>
   );
 }

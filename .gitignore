@@ -13,6 +13,7 @@ node_modules/
 
 # Secretos locales (tokens de Mapbox por plataforma)
 lib/secrets.dart
+lib/mapbox_config.dart
 ios/Flutter/Mapbox.xcconfig
 web_dashboard/src/api/mapboxToken.ts
 

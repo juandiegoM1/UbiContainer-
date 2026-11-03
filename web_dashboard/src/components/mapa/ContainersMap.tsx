@@ -692,7 +692,7 @@ export default function ContainersMap({
       } else {
         window.setTimeout(() => {
           requestUserLocationRef.current({ fly: false, showLoading: false });
-        }, 400);
+        }, 1000);
       }
 
       map.on("zoom", () => {

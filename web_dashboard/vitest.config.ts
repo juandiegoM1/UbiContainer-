@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    reporter: ['json', 'html'],
+    reporters: ['json', 'html'],
     outputFile: {
       json: './test-results/results.json',
       html: './test-results/results.html',
