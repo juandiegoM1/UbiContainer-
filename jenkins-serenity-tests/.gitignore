@@ -1,0 +1,6 @@
+.backend-venv/
+.backend.pid
+.dashboard.pid
+backend.log
+dashboard.log
+target/

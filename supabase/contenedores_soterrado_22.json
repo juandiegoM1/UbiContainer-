@@ -1,0 +1,222 @@
+[
+  {
+    "id": 133,
+    "tipo": "soterrado",
+    "nombre": "Melchor Pérez de Olguín y Calle Quilla (Canchas de Racquet)",
+    "latitude": -17.369255,
+    "longitude": -66.175921,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 134,
+    "tipo": "soterrado",
+    "nombre": "Av. Barrientos y República (Rotonda)",
+    "latitude": -17.416843,
+    "longitude": -66.151695,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 135,
+    "tipo": "soterrado",
+    "nombre": "Av. Capitán Víctor Ustariz y Av. Litoral (Víctor Ustariz)",
+    "latitude": -17.396269,
+    "longitude": -66.175344,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 136,
+    "tipo": "soterrado",
+    "nombre": "Lucas Mendoza y José Aguirre Acha (Plaza Franz Tamayo)",
+    "latitude": -17.374868,
+    "longitude": -66.167082,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 137,
+    "tipo": "soterrado",
+    "nombre": "Av. Heroínas y Parque La Torre (Av. Heroínas)",
+    "latitude": -17.390004,
+    "longitude": -66.145537,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 138,
+    "tipo": "soterrado",
+    "nombre": "B.M. Pula Cayó y Enrique Arce (Parque Lincoln)",
+    "latitude": -17.370625,
+    "longitude": -66.165419,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 139,
+    "tipo": "soterrado",
+    "nombre": "Av. Julio Rodríguez Morales (Colegio Instituto Americano)",
+    "latitude": -17.370081,
+    "longitude": -66.153707,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 140,
+    "tipo": "soterrado",
+    "nombre": "Av. Guillermo Urquidi y Ricardo Terrazas (Plazuela General Román y Parque)",
+    "latitude": -17.395473,
+    "longitude": -66.143401,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 141,
+    "tipo": "soterrado",
+    "nombre": "Calle Hans Gretel esquina Parque del Maestro (Parque del Maestro)",
+    "latitude": -17.397218,
+    "longitude": -66.137926,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 142,
+    "tipo": "soterrado",
+    "nombre": "Calle José Antonio Arce esquina Parque del Maestro",
+    "latitude": -17.393917,
+    "longitude": -66.139637,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 143,
+    "tipo": "soterrado",
+    "nombre": "Av. Franz Tamayo y Moctezuma",
+    "latitude": -17.392212,
+    "longitude": -66.136481,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 144,
+    "tipo": "soterrado",
+    "nombre": "Calle Sucre y Aurelio Meleán (San Pedro)",
+    "latitude": -17.392505,
+    "longitude": -66.147576,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 145,
+    "tipo": "soterrado",
+    "nombre": "Av. Papa Paolo esquina Venezuela (Seminario San Luis)",
+    "latitude": -17.383809,
+    "longitude": -66.147601,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 146,
+    "tipo": "soterrado",
+    "nombre": "Calle Eufrasio Viscarra entre Calle T. Beltrán y Calle Erasmo Arce (Seminario San Luis)",
+    "latitude": -17.38258,
+    "longitude": -66.148773,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 147,
+    "tipo": "soterrado",
+    "nombre": "Av. Ramón Rivero esquina Calle 16 de Julio (Central Santa María)",
+    "latitude": -17.381592,
+    "longitude": -66.155403,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 148,
+    "tipo": "soterrado",
+    "nombre": "Calle M. Márquez casi Av. Villalobos (Tupaya)",
+    "latitude": -17.372449,
+    "longitude": -66.141206,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 149,
+    "tipo": "soterrado",
+    "nombre": "Final América Este (Tupaya)",
+    "latitude": -17.374065,
+    "longitude": -66.137103,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 150,
+    "tipo": "soterrado",
+    "nombre": "Av. Segunda y Av. Simón López",
+    "latitude": -17.35704,
+    "longitude": -66.185029,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 151,
+    "tipo": "soterrado",
+    "nombre": "Av. Las Begonias",
+    "latitude": -17.365308,
+    "longitude": -66.138963,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 152,
+    "tipo": "soterrado",
+    "nombre": "Av. Copacabana",
+    "latitude": -17.425974,
+    "longitude": -66.162205,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 153,
+    "tipo": "soterrado",
+    "nombre": "Calle Elena Rendón y Av. Gualberto Villarroel (Las Islas)",
+    "latitude": -17.367466,
+    "longitude": -66.157742,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  },
+  {
+    "id": 154,
+    "tipo": "soterrado",
+    "nombre": "Calle Araucarias y Amboró (Univalle)",
+    "latitude": -17.420259,
+    "longitude": -66.133419,
+    "cantidad": 1,
+    "estado": "activo",
+    "nivel_llenado": 0
+  }
+]

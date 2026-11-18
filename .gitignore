@@ -10,6 +10,11 @@
 node_modules/
 **/.vite/
 **/node_modules/
+**/__pycache__/
+/backend_app/venv/
+/backend_app/.pytest_cache/
+/web_dashboard/.next/
+/web_dashboard/.vitest/
 
 # Secretos locales (tokens de Mapbox por plataforma)
 lib/secrets.dart
