@@ -198,8 +198,7 @@ def get_containers():
         conn = get_connection()
         if conn is None:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error de conexión a la base de datos")
-        cur = conn.cursor()
-        
+
         def normalize_lat_lon(lat, lon):
             """Normaliza coordenadas para tolerar datos históricos con columnas invertidas.
 
@@ -219,27 +218,15 @@ def get_containers():
                 return lon_f, lat_f
             return lat_f, lon_f
 
-        # Obtener contenedores superficiales (naranjas)
-        # Nota: algunos datos históricos pudieron estar invertidos; se normaliza abajo.
-        cur.execute("SELECT id, latitud, longitud, nombre FROM contenedores_superficiales")
-        naranjas = cur.fetchall()
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, tipo, latitude, longitude, nombre "
+                "FROM public.contenedores ORDER BY id"
+            )
+            rows = cur.fetchall()
 
-        # Obtener contenedores superficiales verdes (tabla separada)
-        # Esta tabla fue creada para separar los verdes de los naranjas.
-        cur.execute("SELECT id, latitud, longitud, nombre FROM contenedores_superficiales_verdes")
-        verdes = cur.fetchall()
-        
-        # Obtener contenedores soterrados
-        cur.execute("SELECT id, latitud, longitud FROM contenedores_soterrados") 
-        soterrados = cur.fetchall()
-        
-        cur.close()
-        conn.close()
-        
         containers = []
-        
-        # Agregar contenedores naranjas
-        for container_id, lat, lon, nombre in naranjas:
+        for container_id, tipo, lat, lon, nombre in rows:
             lat_n, lon_n = normalize_lat_lon(lat, lon)
             if lat_n is None:
                 continue
@@ -247,40 +234,20 @@ def get_containers():
                 "id": str(container_id),
                 "latitude": lat_n,
                 "longitude": lon_n,
-                "type": "naranja",
+                "type": tipo,
                 "name": nombre
             })
 
-        # Agregar contenedores verdes
-        for container_id, lat, lon, nombre in verdes:
-            lat_v, lon_v = normalize_lat_lon(lat, lon)
-            if lat_v is None:
-                continue
-            containers.append({
-                "id": str(container_id),
-                "latitude": lat_v,
-                "longitude": lon_v,
-                "type": "verde",
-                "name": nombre
-            })
-        
-        # Agregar contenedores soterrados
-        for container_id, lat, lon in soterrados:
-            lat_s, lon_s = normalize_lat_lon(lat, lon)
-            if lat_s is None:
-                continue
-            containers.append({
-                "id": str(container_id),
-                "latitude": lat_s,
-                "longitude": lon_s,
-                "type": "soterrado"
-            })
-        
         print(f"📦 Enviando {len(containers)} contenedores al cliente (naranja/verde/soterrado)")
         return containers
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Error al obtener contenedores: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al obtener contenedores: {e}")
+    finally:
+        if 'conn' in locals() and conn is not None:
+            conn.close()
 
 @app.get("/perfil", summary="Obtener perfil del usuario actual (protegido)", response_model=dict)
 def perfil_usuario(user_id: int = Depends(get_current_user)):

@@ -123,7 +123,7 @@ public class DashboardSteps {
 
     @Y("los tipos de contenedor deben ser {string}, {string} o {string}")
     public void tiposValidos(String t1, String t2, String t3) {
-        List<String> tipos = response.jsonPath().getList("tipo");
+        List<String> tipos = response.jsonPath().getList("type");
         if (tipos != null && !tipos.isEmpty()) {
             for (String tipo : tipos) {
                 assertThat(tipo, isOneOf(t1, t2, t3));
