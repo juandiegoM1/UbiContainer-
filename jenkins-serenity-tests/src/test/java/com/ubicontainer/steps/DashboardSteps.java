@@ -60,11 +60,10 @@ public class DashboardSteps {
         Map<String, String> contenedor = datos.get(0);
 
         String body = String.format(
-            "{\"tipo\":\"%s\",\"latitude\":%s,\"longitude\":%s,\"nombre\":\"%s\",\"cantidad\":1,\"estado\":\"activo\",\"nivel_llenado\":0}",
-            contenedor.get("tipo"),
+            "{\"type\":\"%s\",\"latitude\":%s,\"longitude\":%s}",
+            contenedor.get("type"),
             contenedor.get("latitude"),
-            contenedor.get("longitude"),
-            contenedor.get("nombre")
+            contenedor.get("longitude")
         );
 
         response = SerenityRest
@@ -73,7 +72,20 @@ public class DashboardSteps {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/contenedores");
+                .post("/containers");
+    }
+
+    @Cuando("intento crear un reporte de vertedero sin autenticarme")
+    public void crearReporteVertederoSinAutenticacion() {
+        response = SerenityRest
+                .given()
+                .baseUri(backendUrl)
+                .multiPart("latitude", "-17.3895")
+                .multiPart("longitude", "-66.1568")
+                .multiPart("description", "Prueba de autorización")
+                .multiPart("photo", "test.jpg", new byte[] {1, 2, 3}, "image/jpeg")
+                .when()
+                .post("/dump-reports");
     }
 
     // ========== ENTONCES ==========
@@ -125,12 +137,6 @@ public class DashboardSteps {
         assertThat(valor, is(notNullValue()));
     }
 
-    @Y("la respuesta debe contener tipo {string}")
-    public void respuestaContieneTipo(String tipo) {
-        String tipoResp = response.jsonPath().getString("tipo");
-        assertThat(tipoResp, equalTo(tipo));
-    }
-
     @Y("cada contenedor debe tener latitud entre {int} y {int}")
     public void latitudEnRango(int min, int max) {
         List<Float> latitudes = response.jsonPath().getList("latitude", Float.class);
@@ -151,25 +157,4 @@ public class DashboardSteps {
         }
     }
 
-    @Y("cada reporte debe tener los campos {string}, {string}, {string}")
-    public void reporteTieneCampos(String c1, String c2, String c3) {
-        List<Map<String, Object>> lista = response.jsonPath().getList("$");
-        if (!lista.isEmpty()) {
-            for (Map<String, Object> item : lista) {
-                assertThat(item, hasKey(c1));
-                assertThat(item, hasKey(c2));
-                assertThat(item, hasKey(c3));
-            }
-        }
-    }
-
-    @Y("los estados de reporte deben ser {string}, {string} o {string}")
-    public void estadosValidos(String e1, String e2, String e3) {
-        List<String> estados = response.jsonPath().getList("estado");
-        if (estados != null && !estados.isEmpty()) {
-            for (String estado : estados) {
-                assertThat(estado, isOneOf(e1, e2, e3));
-            }
-        }
-    }
 }

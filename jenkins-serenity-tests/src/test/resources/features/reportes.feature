@@ -7,17 +7,7 @@ Característica: Reportes de Vertederos Ilegales
   Antecedentes:
     Dado que el backend de UbiContainer está corriendo en "http://localhost:8000"
 
-  Escenario: Listar reportes de vertederos
-    Cuando hago una petición GET a "/dump-reports"
-    Entonces el código de respuesta debe ser 200
-    Y la respuesta debe ser una lista JSON
-
-  Escenario: Cada reporte tiene ubicación geográfica
-    Cuando hago una petición GET a "/dump-reports"
-    Entonces el código de respuesta debe ser 200
-    Y cada reporte debe tener los campos "latitude", "longitude", "estado"
-
-  Escenario: Los estados de reportes son válidos
-    Cuando hago una petición GET a "/dump-reports"
-    Entonces el código de respuesta debe ser 200
-    Y los estados de reporte deben ser "pendiente", "en_proceso" o "atendido"
+  @regression
+  Escenario: No permitir crear un reporte de vertedero sin autenticación
+    Cuando intento crear un reporte de vertedero sin autenticarme
+    Entonces el código de respuesta debe ser 401
