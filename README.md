@@ -121,13 +121,18 @@ npm run test:frontend
 
 La suite levanta el dashboard en modo de desarrollo y usa Chrome headless. Intercepta las solicitudes a Supabase y Mapbox con datos de prueba, por lo que no lee ni modifica datos reales. Los reportes HTML, JSON y JUnit se generan en `web_dashboard/test-results/`; las capturas de escenarios fallidos quedan adjuntas al reporte HTML.
 
-Para ejecutarlas desde el proyecto Freestyle de Jenkins, agrega un paso **Execute shell**:
+Para ejecutar pruebas y build desde el proyecto Freestyle de Jenkins, agrega un paso **Execute shell**:
 
 ```bash
-cd "$WORKSPACE/web_dashboard"
-npm ci
-npm run test:frontend
+bash "$WORKSPACE/web_dashboard/jenkins-frontend.sh"
 ```
 
-Publica `web_dashboard/test-results/frontend-junit.xml` como resultado JUnit y `web_dashboard/test-results/frontend-cucumber-report.html` con HTML Publisher. Para correr solo el conjunto smoke, usa `npm run test:frontend:smoke`.
+El script instala las dependencias, ejecuta las pruebas BDD y compila el dashboard. Si Jenkins no tiene las variables de Supabase y Mapbox, usa valores de prueba solo para compilar; ese build no debe desplegarse. Para publicar, configura los valores del entorno de destino en Jenkins.
+
+Agrega estas acciones Post-build para conservar los resultados incluso si una prueba falla:
+
+- **Publish JUnit test result report:** `web_dashboard/test-results/frontend-junit.xml`
+- **Publish HTML reports:** directorio `web_dashboard/test-results`, archivo `frontend-cucumber-report.html`
+
+Para correr solo el conjunto smoke localmente, usa `npm run test:frontend:smoke`.
 
