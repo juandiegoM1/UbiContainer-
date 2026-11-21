@@ -109,3 +109,25 @@ ubi_container_new/
 
 Esta separación permite trabajar cada parte del proyecto de forma ordenada. La app móvil se enfoca en el uso en campo, el dashboard en la visualización administrativa y el backend en la lógica y conexión con datos.
 
+## Pruebas BDD del frontend
+
+El dashboard tiene escenarios de interfaz escritos con Cucumber y Gherkin. Para ejecutarlos localmente, se requiere Node.js y Google Chrome:
+
+```bash
+cd web_dashboard
+npm ci
+npm run test:frontend
+```
+
+La suite levanta el dashboard en modo de desarrollo y usa Chrome headless. Intercepta las solicitudes a Supabase y Mapbox con datos de prueba, por lo que no lee ni modifica datos reales. Los reportes HTML, JSON y JUnit se generan en `web_dashboard/test-results/`; las capturas de escenarios fallidos quedan adjuntas al reporte HTML.
+
+Para ejecutarlas desde el proyecto Freestyle de Jenkins, agrega un paso **Execute shell**:
+
+```bash
+cd "$WORKSPACE/web_dashboard"
+npm ci
+npm run test:frontend
+```
+
+Publica `web_dashboard/test-results/frontend-junit.xml` como resultado JUnit y `web_dashboard/test-results/frontend-cucumber-report.html` con HTML Publisher. Para correr solo el conjunto smoke, usa `npm run test:frontend:smoke`.
+

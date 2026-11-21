@@ -1,0 +1,70 @@
+const containers = [
+  {
+    id: 1,
+    tipo: "verde",
+    latitude: -17.3935,
+    longitude: -66.157,
+    nombre: "Parque Central",
+    cantidad: 1,
+    estado: "activo",
+    nivel_llenado: 25,
+    creado_por: null,
+  },
+  {
+    id: 2,
+    tipo: "naranja",
+    latitude: -17.3895,
+    longitude: -66.1568,
+    nombre: "Mercado Norte",
+    cantidad: 1,
+    estado: "activo",
+    nivel_llenado: 85,
+    creado_por: null,
+  },
+  {
+    id: 3,
+    tipo: "soterrado",
+    latitude: -17.391,
+    longitude: -66.16,
+    nombre: "Plaza Central",
+    cantidad: 1,
+    estado: "activo",
+    nivel_llenado: 100,
+    creado_por: null,
+  },
+];
+
+const reports = [
+  {
+    id: 101,
+    user_id: null,
+    latitude: -17.39,
+    longitude: -66.15,
+    description: "Reporte pendiente de prueba",
+    photo_path: null,
+    estado: "pendiente",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 102,
+    user_id: null,
+    latitude: -17.395,
+    longitude: -66.155,
+    description: "Reporte en proceso de prueba",
+    photo_path: null,
+    estado: "en_proceso",
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 103,
+    user_id: null,
+    latitude: -17.4,
+    longitude: -66.16,
+    description: "Reporte atendido de prueba",
+    photo_path: null,
+    estado: "atendido",
+    created_at: new Date().toISOString(),
+  },
+];
+
+module.exports = { containers, reports };
